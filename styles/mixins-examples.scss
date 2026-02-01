@@ -1,0 +1,151 @@
+/**
+ * 样式混入使用示例
+ * 本文件展示如何使用 mixins.scss 中定义的混入
+ */
+
+@import './variables.scss';
+@import './mixins.scss';
+
+// 示例 1: 单行文本省略
+.text-ellipsis-single {
+    @include ellipsis(1);
+    // 生成:
+    // overflow: hidden;
+    // text-overflow: ellipsis;
+    // white-space: nowrap;
+}
+
+// 示例 2: 多行文本省略（2行）
+.text-ellipsis-multi {
+    @include ellipsis(2);
+    // 生成:
+    // display: -webkit-box;
+    // -webkit-box-orient: vertical;
+    // -webkit-line-clamp: 2;
+    // overflow: hidden;
+    // text-overflow: ellipsis;
+}
+
+// 示例 3: 完全居中（水平+垂直）
+.center-box {
+    @include flex-center;
+    // 生成:
+    // display: flex;
+    // align-items: center;
+    // justify-content: center;
+}
+
+// 示例 4: 垂直居中
+.v-center-box {
+    @include flex-v-center;
+    // 生成:
+    // display: flex;
+    // align-items: center;
+}
+
+// 示例 5: 水平居中
+.h-center-box {
+    @include flex-h-center;
+    // 生成:
+    // display: flex;
+    // justify-content: center;
+}
+
+// 示例 6: 清除浮动
+.clearfix-container {
+    @include clearfix;
+    // 生成:
+    // &::after {
+    //   content: '';
+    //   display: table;
+    //   clear: both;
+    // }
+}
+
+// 示例 7: 1px 全边框
+.hairline-all {
+    @include hairline(all, $border-color);
+    // 生成 1px 的全边框，使用 transform: scale(0.5) 实现真正的 1px 效果
+}
+
+// 示例 8: 1px 顶部边框
+.hairline-top {
+    @include hairline(top, $border-color);
+    // 生成 1px 的顶部边框
+}
+
+// 示例 9: 1px 底部边框
+.hairline-bottom {
+    @include hairline(bottom, $border-color);
+    // 生成 1px 的底部边框
+}
+
+// 示例 10: 1px 左侧边框
+.hairline-left {
+    @include hairline(left, $border-color);
+    // 生成 1px 的左侧边框
+}
+
+// 示例 11: 1px 右侧边框
+.hairline-right {
+    @include hairline(right, $border-color);
+    // 生成 1px 的右侧边框
+}
+
+// 示例 12: 自定义颜色的 1px 边框
+.hairline-custom-color {
+    @include hairline(bottom, $color-primary);
+    // 使用主色调作为边框颜色
+}
+
+// 实际应用示例：消息气泡
+.message-bubble {
+    padding: $spacing-md;
+    border-radius: $border-radius-base;
+    background-color: $bg-color;
+    @include hairline(all, $border-color);
+
+    .message-text {
+        @include ellipsis(3); // 最多显示3行
+        color: $text-color;
+        font-size: $font-size-base;
+    }
+}
+
+// 实际应用示例：卡片容器
+.card-container {
+    @include clearfix;
+    padding: $spacing-lg;
+    background-color: $bg-color;
+    border-radius: $border-radius-lg;
+    box-shadow: $shadow-card;
+
+    .card-title {
+        @include ellipsis(1);
+        font-size: $font-size-lg;
+        color: $text-color;
+        margin-bottom: $spacing-sm;
+    }
+
+    .card-content {
+        @include flex-v-center;
+        gap: $spacing-sm;
+    }
+}
+
+// 实际应用示例：按钮
+.button {
+    @include flex-center;
+    height: 80rpx;
+    padding: 0 $spacing-lg;
+    border-radius: $border-radius-base;
+    background-color: $color-primary;
+    color: $text-color-white;
+    font-size: $font-size-base;
+
+    &.button-outline {
+        background-color: transparent;
+        color: $color-primary;
+        @include hairline(all, $color-primary);
+    }
+}

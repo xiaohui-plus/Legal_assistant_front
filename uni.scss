@@ -1,0 +1,46 @@
+/**
+ * uni-app 全局样式变量
+ * 这里定义的变量会被自动注入到每个页面和组件中
+ */
+
+// 主色调
+$uni-color-primary: #165DFF;
+$uni-color-success: #52C41A;
+$uni-color-warning: #FF7D00;
+$uni-color-error: #F5222D;
+
+// 文字颜色
+$uni-text-color: #333333;
+$uni-text-color-grey: #999999;
+$uni-text-color-placeholder: #CCCCCC;
+
+// 背景颜色
+$uni-bg-color: #FFFFFF;
+$uni-bg-color-grey: #F5F7FA;
+$uni-bg-color-hover: #E8F3FF;
+$uni-bg-color-mask: rgba(0, 0, 0, 0.4);
+
+// 边框颜色
+$uni-border-color: #E5E5E5;
+
+// 字体大小
+$uni-font-size-sm: 26rpx;
+$uni-font-size-base: 30rpx;
+$uni-font-size-lg: 36rpx;
+
+// 间距
+$uni-spacing-row-sm: 10rpx;
+$uni-spacing-row-base: 20rpx;
+$uni-spacing-row-lg: 30rpx;
+$uni-spacing-col-sm: 10rpx;
+$uni-spacing-col-base: 20rpx;
+$uni-spacing-col-lg: 30rpx;
+
+// 圆角
+$uni-border-radius-sm: 4rpx;
+$uni-border-radius-base: 8rpx;
+$uni-border-radius-lg: 16rpx;
+$uni-border-radius-circle: 50%;
+
+// 阴影
+$uni-shadow-base: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);

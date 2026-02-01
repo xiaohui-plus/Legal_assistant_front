@@ -3,128 +3,128 @@
 ## 阶段 1：项目初始化和基础架构
 
 ### 1.1 项目初始化
-- [ ] 1.1.1 创建 uniapp 项目结构
-- [ ] 1.1.2 配置 TypeScript 和 Vue 3
-- [ ] 1.1.3 配置 manifest.json 和 pages.json
-- [ ] 1.1.4 安装依赖（uni-ui, pinia, vitest, fast-check）
+- [x] 1.1.1 创建 uniapp 项目结构
+- [x] 1.1.2 配置 TypeScript 和 Vue 3
+- [x] 1.1.3 配置 manifest.json 和 pages.json
+- [x] 1.1.4 安装依赖（uni-ui, pinia, vitest, fast-check）
 
 ### 1.2 目录结构搭建
-- [ ] 1.2.1 创建 pages 目录结构（chat, document, profile）
-- [ ] 1.2.2 创建 components 目录结构
-- [ ] 1.2.3 创建 store, services, api, utils, types 目录
-- [ ] 1.2.4 创建 styles 目录和全局样式文件
+- [x] 1.2.1 创建 pages 目录结构（chat, document, profile）
+- [x] 1.2.2 创建 components 目录结构
+- [x] 1.2.3 创建 store, services, api, utils, types 目录
+- [x] 1.2.4 创建 styles 目录和全局样式文件
 
 ### 1.3 类型定义
-- [ ] 1.3.1 定义聊天相关类型（types/chat.ts）- 验证需求 1, 2
-- [ ] 1.3.2 定义文书相关类型（types/document.ts）- 验证需求 6, 7, 8
-- [ ] 1.3.3 定义用户相关类型（types/user.ts）- 验证需求 9
+- [x] 1.3.1 定义聊天相关类型（types/chat.ts）- 验证需求 1, 2
+- [x] 1.3.2 定义文书相关类型（types/document.ts）- 验证需求 6, 7, 8
+- [x] 1.3.3 定义用户相关类型（types/user.ts）- 验证需求 9
 
 ### 1.4 全局样式配置
-- [ ] 1.4.1 配置样式变量（styles/variables.scss）- 验证需求 13
-- [ ] 1.4.2 创建样式混入（styles/mixins.scss）
-- [ ] 1.4.3 创建通用样式（styles/common.scss）
+- [x] 1.4.1 配置样式变量（styles/variables.scss）- 验证需求 13
+- [x] 1.4.2 创建样式混入（styles/mixins.scss）
+- [x] 1.4.3 创建通用样式（styles/common.scss）
 
 ## 阶段 2：工具函数和基础服务
 
 ### 2.1 本地存储工具
-- [ ] 2.1.1 实现 StorageManager（utils/storage.ts）- 验证需求 10
-- [ ] 2.1.2 编写 StorageManager 单元测试
-- [ ] 2.1.3 编写属性测试：本地存储往返一致性（属性 7）
+- [x] 2.1.1 实现 StorageManager（utils/storage.ts）- 验证需求 10
+- [~] 2.1.2 编写 StorageManager 单元测试
+- [~] 2.1.3 编写属性测试：本地存储往返一致性（属性 7）
 
 ### 2.2 网络请求封装
-- [ ] 2.2.1 实现 HttpClient（api/request.ts）- 验证需求 11, 12
-- [ ] 2.2.2 实现流式请求支持
-- [ ] 2.2.3 编写 HttpClient 单元测试
-- [ ] 2.2.4 编写属性测试：网络请求统一处理（属性 17）
-- [ ] 2.2.5 编写属性测试：请求重试幂等性（属性 18）
+- [~] 2.2.1 实现 HttpClient（api/request.ts）- 验证需求 11, 12
+- [~] 2.2.2 实现流式请求支持
+- [~] 2.2.3 编写 HttpClient 单元测试
+- [~] 2.2.4 编写属性测试：网络请求统一处理（属性 17）
+- [~] 2.2.5 编写属性测试：请求重试幂等性（属性 18）
 
 ### 2.3 工具函数
-- [ ] 2.3.1 实现表单验证工具（utils/validator.ts）- 验证需求 7
-- [ ] 2.3.2 实现格式化工具（utils/formatter.ts）
-- [ ] 2.3.3 实现平台判断工具（utils/platform.ts）- 验证需求 14
-- [ ] 2.3.4 编写工具函数单元测试
+- [~] 2.3.1 实现表单验证工具（utils/validator.ts）- 验证需求 7
+- [~] 2.3.2 实现格式化工具（utils/formatter.ts）
+- [~] 2.3.3 实现平台判断工具（utils/platform.ts）- 验证需求 14
+- [~] 2.3.4 编写工具函数单元测试
 
 ### 2.4 API 接口层
-- [ ] 2.4.1 实现聊天 API（api/chatApi.ts）- 验证需求 2, 12
-- [ ] 2.4.2 实现文书 API（api/documentApi.ts）- 验证需求 6, 7
-- [ ] 2.4.3 实现用户 API（api/userApi.ts）- 验证需求 9
+- [~] 2.4.1 实现聊天 API（api/chatApi.ts）- 验证需求 2, 12
+- [~] 2.4.2 实现文书 API（api/documentApi.ts）- 验证需求 6, 7
+- [~] 2.4.3 实现用户 API（api/userApi.ts）- 验证需求 9
 
 ## 阶段 3：状态管理
 
 ### 3.1 聊天状态管理
-- [ ] 3.1.1 实现 chat store（store/chat.ts）- 验证需求 1, 2
-- [ ] 3.1.2 编写 chat store 单元测试
-- [ ] 3.1.3 编写属性测试：会话创建增长列表（属性 1）
-- [ ] 3.1.4 编写属性测试：消息发送增长列表（属性 3）
-- [ ] 3.1.5 编写属性测试：搜索结果匹配关键词（属性 2）
+- [~] 3.1.1 实现 chat store（store/chat.ts）- 验证需求 1, 2
+- [~] 3.1.2 编写 chat store 单元测试
+- [~] 3.1.3 编写属性测试：会话创建增长列表（属性 1）
+- [~] 3.1.4 编写属性测试：消息发送增长列表（属性 3）
+- [~] 3.1.5 编写属性测试：搜索结果匹配关键词（属性 2）
 
 ### 3.2 文书状态管理
-- [ ] 3.2.1 实现 document store（store/document.ts）- 验证需求 6, 7, 8
-- [ ] 3.2.2 编写 document store 单元测试
-- [ ] 3.2.3 编写属性测试：分类过滤正确性（属性 8）
-- [ ] 3.2.4 编写属性测试：收藏操作可查询性（属性 9）
+- [~] 3.2.1 实现 document store（store/document.ts）- 验证需求 6, 7, 8
+- [~] 3.2.2 编写 document store 单元测试
+- [~] 3.2.3 编写属性测试：分类过滤正确性（属性 8）
+- [~] 3.2.4 编写属性测试：收藏操作可查询性（属性 9）
 
 ### 3.3 用户状态管理
-- [ ] 3.3.1 实现 user store（store/user.ts）- 验证需求 9
-- [ ] 3.3.2 编写 user store 单元测试
+- [~] 3.3.1 实现 user store（store/user.ts）- 验证需求 9
+- [~] 3.3.2 编写 user store 单元测试
 
 ## 阶段 4：业务服务层
 
 ### 4.1 聊天服务
-- [ ] 4.1.1 实现 ChatManager（services/chatService.ts）- 验证需求 1, 2, 4, 5
-- [ ] 4.1.2 实现 MessageHandler
-- [ ] 4.1.3 编写聊天服务单元测试
-- [ ] 4.1.4 编写属性测试：流式数据完整性（属性 19）
+- [~] 4.1.1 实现 ChatManager（services/chatService.ts）- 验证需求 1, 2, 4, 5
+- [~] 4.1.2 实现 MessageHandler
+- [~] 4.1.3 编写聊天服务单元测试
+- [~] 4.1.4 编写属性测试：流式数据完整性（属性 19）
 
 ### 4.2 文书服务
-- [ ] 4.2.1 实现 TemplateManager（services/documentService.ts）- 验证需求 6
-- [ ] 4.2.2 实现 DocumentGenerator - 验证需求 7, 8
-- [ ] 4.2.3 编写文书服务单元测试
-- [ ] 4.2.4 编写属性测试：模板卡片显示完整信息（属性 10）
-- [ ] 4.2.5 编写属性测试：动态表单字段匹配模板（属性 11）
-- [ ] 4.2.6 编写属性测试：表单验证规则正确性（属性 12）
-- [ ] 4.2.7 编写属性测试：表单完整性控制生成按钮（属性 13）
-- [ ] 4.2.8 编写属性测试：文书生成参数一致性（属性 14）
+- [~] 4.2.1 实现 TemplateManager（services/documentService.ts）- 验证需求 6
+- [~] 4.2.2 实现 DocumentGenerator - 验证需求 7, 8
+- [~] 4.2.3 编写文书服务单元测试
+- [~] 4.2.4 编写属性测试：模板卡片显示完整信息（属性 10）
+- [~] 4.2.5 编写属性测试：动态表单字段匹配模板（属性 11）
+- [~] 4.2.6 编写属性测试：表单验证规则正确性（属性 12）
+- [~] 4.2.7 编写属性测试：表单完整性控制生成按钮（属性 13）
+- [~] 4.2.8 编写属性测试：文书生成参数一致性（属性 14）
 
 ### 4.3 用户服务
-- [ ] 4.3.1 实现用户服务（services/userService.ts）- 验证需求 9
-- [ ] 4.3.2 编写用户服务单元测试
+- [~] 4.3.1 实现用户服务（services/userService.ts）- 验证需求 9
+- [~] 4.3.2 编写用户服务单元测试
 
 ## 阶段 5：通用组件
 
 ### 5.1 基础组件
-- [ ] 5.1.1 实现空状态组件（components/common/EmptyState.vue）- 验证需求 1.7
-- [ ] 5.1.2 实现加载动画组件（components/common/LoadingSpinner.vue）- 验证需求 4.3
-- [ ] 5.1.3 实现免责声明组件（components/common/Disclaimer.vue）- 验证需求 16
-- [ ] 5.1.4 编写基础组件单元测试
+- [~] 5.1.1 实现空状态组件（components/common/EmptyState.vue）- 验证需求 1.7
+- [~] 5.1.2 实现加载动画组件（components/common/LoadingSpinner.vue）- 验证需求 4.3
+- [~] 5.1.3 实现免责声明组件（components/common/Disclaimer.vue）- 验证需求 16
+- [~] 5.1.4 编写基础组件单元测试
 
 ### 5.2 聊天组件
-- [ ] 5.2.1 实现消息气泡组件（components/chat/MessageBubble.vue）- 验证需求 2.4, 2.5
-- [ ] 5.2.2 实现消息输入框组件（components/chat/MessageInput.vue）- 验证需求 2.8, 2.9, 2.10
-- [ ] 5.2.3 实现流式文本显示组件（components/chat/StreamingText.vue）- 验证需求 2.2, 12
-- [ ] 5.2.4 编写聊天组件单元测试
-- [ ] 5.2.5 编写属性测试：Markdown 渲染保留内容（属性 4）
-- [ ] 5.2.6 编写属性测试：输入状态控制按钮（属性 5）
+- [~] 5.2.1 实现消息气泡组件（components/chat/MessageBubble.vue）- 验证需求 2.4, 2.5
+- [~] 5.2.2 实现消息输入框组件（components/chat/MessageInput.vue）- 验证需求 2.8, 2.9, 2.10
+- [~] 5.2.3 实现流式文本显示组件（components/chat/StreamingText.vue）- 验证需求 2.2, 12
+- [~] 5.2.4 编写聊天组件单元测试
+- [~] 5.2.5 编写属性测试：Markdown 渲染保留内容（属性 4）
+- [~] 5.2.6 编写属性测试：输入状态控制按钮（属性 5）
 
 ### 5.3 文书组件
-- [ ] 5.3.1 实现模板卡片组件（components/document/TemplateCard.vue）- 验证需求 6.6, 6.7
-- [ ] 5.3.2 实现动态表单组件（components/document/DynamicForm.vue）- 验证需求 7.1, 7.2
-- [ ] 5.3.3 实现文书编辑器组件（components/document/DocumentEditor.vue）- 验证需求 8.2
-- [ ] 5.3.4 编写文书组件单元测试
+- [~] 5.3.1 实现模板卡片组件（components/document/TemplateCard.vue）- 验证需求 6.6, 6.7
+- [~] 5.3.2 实现动态表单组件（components/document/DynamicForm.vue）- 验证需求 7.1, 7.2
+- [~] 5.3.3 实现文书编辑器组件（components/document/DocumentEditor.vue）- 验证需求 8.2
+- [~] 5.3.4 编写文书组件单元测试
 
 ## 阶段 6：页面实现
 
 ### 6.1 聊天模块页面
-- [ ] 6.1.1 实现聊天列表页（pages/chat/list.vue）- 验证需求 1
-- [ ] 6.1.2 实现聊天窗口页（pages/chat/window.vue）- 验证需求 2, 3, 4, 5
-- [ ] 6.1.3 编写聊天页面单元测试
-- [ ] 6.1.4 编写属性测试：清空操作清除所有数据（属性 15）
+- [~] 6.1.1 实现聊天列表页（pages/chat/list.vue）- 验证需求 1
+- [~] 6.1.2 实现聊天窗口页（pages/chat/window.vue）- 验证需求 2, 3, 4, 5
+- [~] 6.1.3 编写聊天页面单元测试
+- [~] 6.1.4 编写属性测试：清空操作清除所有数据（属性 15）
 
 ### 6.2 文书模块页面
-- [ ] 6.2.1 实现模板列表页（pages/document/templates.vue）- 验证需求 6
-- [ ] 6.2.2 实现参数填写页（pages/document/form.vue）- 验证需求 7
-- [ ] 6.2.3 实现文书预览页（pages/document/preview.vue）- 验证需求 8
-- [ ] 6.2.4 编写文书页面单元测试
+- [~] 6.2.1 实现模板列表页（pages/document/templates.vue）- 验证需求 6
+- [-] 6.2.2 实现参数填写页（pages/document/form.vue）- 验证需求 7
+- [~] 6.2.3 实现文书预览页（pages/document/preview.vue）- 验证需求 8
+- [~] 6.2.4 编写文书页面单元测试
 
 ### 6.3 个人中心模块页面
 - [ ] 6.3.1 实现个人中心首页（pages/profile/index.vue）- 验证需求 9
