@@ -20,7 +20,31 @@
 - **本地存储**：uni.setStorage API
 - **网络请求**：封装的 uni.request
 - **样式方案**：SCSS + rpx 响应式单位
+- **图标库**：Iconify（使用 heroicons 图标集）
 - **构建工具**：HBuilderX / CLI
+
+### UI 设计系统
+
+基于提供的UI原型，应用采用现代化的设计系统：
+
+#### 颜色方案
+- **主色调**：indigo-600 (#4F46E5) - 用于主要按钮、激活状态
+- **主色调渐变**：indigo-600 到 blue-500 - 用于品牌标识
+- **背景色**：slate-50 (#F8FAFC) - 主内容区背景
+- **卡片背景**：white (#FFFFFF) - 卡片和面板背景
+- **文本色**：slate-900 (#0F172A) - 主要文本
+- **次要文本色**：slate-600 (#475569) - 次要文本
+- **辅助文本色**：slate-400 (#94A3B8) - 提示文本
+- **边框色**：slate-200 (#E2E8F0) - 分隔线和边框
+- **高亮背景**：indigo-50 (#EEF2FF) - 选中状态背景
+- **警示色**：orange-500 (#F97316) - 警告和提示
+
+#### 布局结构
+- **三栏布局**：左侧导航栏（256px）+ 主内容区（flex-1）+ 右侧工具栏（320px）
+- **响应式设计**：使用 Tailwind CSS 风格的响应式类名
+- **圆角规范**：卡片 rounded-2xl (16px)、按钮 rounded-xl (12px)、小元素 rounded-lg (8px)
+- **阴影规范**：卡片 shadow-sm、按钮 shadow-md、浮动元素 shadow-xl
+- **间距规范**：使用 4px 基础单位（p-4 = 16px, p-6 = 24px）
 
 ## 架构
 
@@ -116,6 +140,134 @@ legal-assistant-app/
 ├── pages.json               # 页面配置
 └── uni.scss                 # uni-app 样式变量
 ```
+
+## UI 组件设计
+
+### 布局组件
+
+#### 1. 侧边导航栏 (SideNavigation)
+
+**设计规范**：
+- 宽度：256px (w-64)
+- 背景：白色，右侧边框 border-slate-200
+- 顶部品牌区：包含图标（indigo-600 背景）和渐变文字
+- 导航按钮：激活状态 bg-indigo-50 + text-indigo-700，未激活 text-slate-600
+- 底部信息卡：渐变背景 from-indigo-600 to-indigo-700
+
+**功能**：
+- 法律咨询（chat-bubble-left-right 图标）
+- 文书生成（document-text 图标）
+- 案例库检索（magnifying-glass-circle 图标）
+- 历史记录（clock 图标）
+- 版本信息展示
+
+#### 2. 顶部 Header (TopHeader)
+
+**设计规范**：
+- 高度：64px (h-16)
+- 背景：白色半透明 bg-white/80，毛玻璃效果 backdrop-blur-md
+- 左侧：显示当前对话标题
+- 右侧：分享按钮 + 用户头像
+
+**功能**：
+- 显示当前会话标题
+- 分享报告功能
+- 用户头像点击进入个人中心
+
+#### 3. 右侧工具栏 (RightSidebar)
+
+**设计规范**：
+- 宽度：320px (w-80)
+- 背景：白色，左侧边框 border-slate-200
+- 分为两个区域：知识卡片 + 典型案例
+
+**知识卡片区域**：
+- 标题：带 bookmark 图标
+- 卡片背景：slate-50
+- 法条卡片：白色背景，slate-100 边框
+
+**典型案例区域**：
+- 标题：带 academic-cap 图标
+- 案例列表：可点击，hover 时文字变 indigo-600
+- 底部：认证标识和说明文字
+
+### 聊天组件
+
+#### 4. 消息气泡 (MessageBubble)
+
+**AI 消息样式**：
+- 位置：左对齐
+- 头像：indigo-600 背景圆角方形，sparkles 图标
+- 气泡：白色背景，slate-200 边框，rounded-2xl
+- 文字：slate-700
+- 最大宽度：max-w-4xl
+
+**用户消息样式**：
+- 位置：右对齐
+- 头像：slate-200 背景圆角方形，user 图标
+- 气泡：indigo-600 背景，白色文字，rounded-2xl
+- 阴影：shadow-md shadow-indigo-100
+- 最大宽度：max-w-[80%]
+
+**特殊卡片**：
+- 工具卡片：slate-50 背景，hover 时 border-indigo-200
+- 文书预览卡片：包含标题栏、内容区、操作按钮
+
+#### 5. 消息输入框 (MessageInput)
+
+**设计规范**：
+- 容器：白色背景，2px border-slate-200，rounded-2xl
+- focus 状态：border-indigo-500
+- 左侧：附件按钮（paper-clip 图标）
+- 中间：自动扩展的 textarea
+- 右侧：语音按钮（microphone 图标）+ 发送按钮
+- 发送按钮：indigo-600 背景，rounded-xl，paper-airplane 图标
+
+**功能**：
+- 自动扩展高度（最大 max-h-40）
+- 附件上传
+- 语音输入
+- 发送消息
+
+#### 6. 文书预览卡片 (DocumentPreviewCard)
+
+**设计规范**：
+- 标题栏：slate-50 背景，包含文书标题和操作按钮
+- 操作按钮：下载（arrow-down-tray）、编辑（pencil-square）
+- 内容区：白色背景，显示文书内容（支持 Markdown）
+- 风险提示：indigo-600 文字高亮
+- 底部标签：白色背景，slate-200 边框，rounded-full
+
+**功能**：
+- 预览文书内容
+- 下载文书
+- 编辑文书
+- 快捷操作标签（修改金额、添加条款、重新生成）
+
+### 通用组件
+
+#### 7. 空状态 (EmptyState)
+
+**设计规范**：
+- 居中布局
+- 图标：slate-300 颜色
+- 文字：slate-500
+- 引导按钮：indigo-600 背景
+
+#### 8. 加载动画 (LoadingSpinner)
+
+**设计规范**：
+- 使用 indigo-600 颜色
+- 支持不同尺寸（sm, md, lg）
+- 平滑旋转动画
+
+#### 9. 免责声明 (Disclaimer)
+
+**设计规范**：
+- 文字大小：text-[10px]
+- 颜色：slate-400
+- 居中对齐
+- 大写字母间距：uppercase tracking-widest
 
 ## 组件和接口
 

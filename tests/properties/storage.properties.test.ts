@@ -321,10 +321,16 @@ describe('StorageManager - Property-Based Tests', () => {
                             await storageManager.set(op.key, op.value)
                         }
 
-                        // 验证所有数据
+                        // 创建一个Map来存储每个key的最后一个值（因为重复的key会被覆盖）
+                        const lastValues = new Map<string, any>()
                         for (const op of operations) {
-                            const retrieved = await storageManager.get(op.key)
-                            expect(retrieved).toEqual(op.value)
+                            lastValues.set(op.key, op.value)
+                        }
+
+                        // 验证所有数据 - 只验证每个key的最后一个值
+                        for (const [key, expectedValue] of lastValues.entries()) {
+                            const retrieved = await storageManager.get(key)
+                            expect(retrieved).toEqual(expectedValue)
                         }
                     }
                 ),
