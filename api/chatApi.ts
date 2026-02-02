@@ -13,12 +13,14 @@ import type { ApiResponse } from '../types/api'
  * 
  * @param sessionId 会话ID
  * @param message 消息内容
+ * @param attachments 附件列表（可选）
  * @returns 返回助手的回复消息
  */
-export const sendMessage = async (sessionId: string, message: string): Promise<Message> => {
+export const sendMessage = async (sessionId: string, message: string, attachments?: any[]): Promise<Message> => {
     const response = await httpClient.post<ApiResponse<Message>>('/api/chat/send', {
         sessionId,
-        message
+        message,
+        attachments
     })
 
     return response.data
@@ -241,5 +243,74 @@ export const unfavoriteMessage = async (messageId: string): Promise<void> => {
 export const reportMessage = async (messageId: string, reason: string): Promise<void> => {
     await httpClient.post(`/api/chat/messages/${messageId}/report`, {
         reason
+    })
+}
+
+/**
+ * 更新会话信息
+ * 验证需求 1.3 - 更新会话
+ * 
+ * @param sessionId 会话ID
+ * @param updates 更新的字段
+ */
+export const updateChatSession = async (sessionId: string, updates: Partial<ChatSession>): Promise<void> => {
+    await httpClient.put(`/api/chat/sessions/${sessionId}`, updates)
+}
+
+/**
+ * 收藏会话
+ * 验证需求 1.3 - 收藏会话
+ * 
+ * @param sessionId 会话ID
+ */
+export const favoriteSession = async (sessionId: string): Promise<void> => {
+    await httpClient.post(`/api/chat/sessions/${sessionId}/favorite`)
+}
+
+/**
+ * 取消收藏会话
+ * 验证需求 1.3 - 取消收藏会话
+ * 
+ * @param sessionId 会话ID
+ */
+export const unfavoriteSession = async (sessionId: string): Promise<void> => {
+    await httpClient.delete(`/api/chat/sessions/${sessionId}/favorite`)
+}
+
+/**
+ * 接收流式响应
+ * 验证需求 2.2, 12 - 接收流式响应数据
+ * 
+ * @param responseId 响应ID
+ * @param onChunk 接收数据块的回调函数
+ */
+export const receiveStreamingResponse = async (
+    responseId: string, 
+    onChunk: (chunk: string) => void
+): Promise<void> => {
+    return httpClient.stream(`/api/chat/stream/${responseId}`, {}, onChunk)
+}
+
+/**
+ * 取消流式响应
+ * 验证需求 4.4 - 取消当前流式响应
+ */
+export const cancelStreamingResponse = async (): Promise<void> => {
+    await httpClient.post('/api/chat/cancel')
+}
+
+/**
+ * 复制消息内容到剪贴板
+ * 验证需求 2.7 - 复制消息内容
+ * 
+ * @param content 要复制的内容
+ */
+export const copyMessageContent = async (content: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+        uni.setClipboardData({
+            data: content,
+            success: () => resolve(),
+            fail: (error) => reject(new Error('复制失败'))
+        })
     })
 }

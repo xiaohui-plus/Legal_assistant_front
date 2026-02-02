@@ -15,5 +15,7 @@ onHide(() => {
 </script>
 
 <style lang="scss">
+@import "@/styles/variables.scss";
 @import '@/styles/common.scss';
+@import '@/styles/animations.scss';
 </style>

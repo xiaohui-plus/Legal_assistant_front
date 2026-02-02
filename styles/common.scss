@@ -24,7 +24,7 @@ page {
     background-color: $bg-color;
     border-radius: $border-radius-base;
     padding: $spacing-sm;
-    box-shadow: $shadow-card;
+    box-shadow: $shadow-base;
 }
 
 // 通用按钮
@@ -513,7 +513,7 @@ page {
 }
 
 .rounded-circle {
-    border-radius: $border-radius-circle;
+    border-radius: $border-radius-full;
 }
 
 // 阴影
@@ -522,7 +522,7 @@ page {
 }
 
 .shadow-card {
-    box-shadow: $shadow-card;
+    box-shadow: $shadow-base;
 }
 
 // 边框
@@ -583,4 +583,36 @@ page {
 
 .not-allowed {
     cursor: not-allowed;
+}
+// 滚动条隐藏样式
+.hide-scrollbar {
+    /* 隐藏 webkit 浏览器的滚动条 */
+    &::-webkit-scrollbar {
+        display: none;
+    }
+    
+    /* 隐藏标准浏览器的滚动条 */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;     /* Firefox */
+}
+
+// 自定义滚动条样式
+.custom-scrollbar {
+    &::-webkit-scrollbar {
+        width: 8rpx;
+    }
+    
+    &::-webkit-scrollbar-track {
+        background: #F1F5F9;
+        border-radius: 8rpx;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+        background: #CBD5E1;
+        border-radius: 8rpx;
+        
+        &:hover {
+            background: #94A3B8;
+        }
+    }
 }

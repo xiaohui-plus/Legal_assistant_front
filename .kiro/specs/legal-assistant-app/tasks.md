@@ -47,38 +47,38 @@
 
 ### 2.4 API 接口层
 - [x] 2.4.1 实现聊天 API（api/chatApi.ts）- 验证需求 2, 12
-- [~] 2.4.2 实现文书 API（api/documentApi.ts）- 验证需求 6, 7
-- [~] 2.4.3 实现用户 API（api/userApi.ts）- 验证需求 9
+- [x] 2.4.2 实现文书 API（api/documentApi.ts）- 验证需求 6, 7
+- [x] 2.4.3 实现用户 API（api/userApi.ts）- 验证需求 9
 
 ## 阶段 3：状态管理
 
 ### 3.1 聊天状态管理
-- [~] 3.1.1 实现 chat store（store/chat.ts）- 验证需求 1, 2
-- [~] 3.1.2 编写 chat store 单元测试
+- [x] 3.1.1 实现 chat store（store/chat.ts）- 验证需求 1, 2
+- [x] 3.1.2 编写 chat store 单元测试
 - [~] 3.1.3 编写属性测试：会话创建增长列表（属性 1）
 - [~] 3.1.4 编写属性测试：消息发送增长列表（属性 3）
 - [~] 3.1.5 编写属性测试：搜索结果匹配关键词（属性 2）
 
 ### 3.2 文书状态管理
-- [~] 3.2.1 实现 document store（store/document.ts）- 验证需求 6, 7, 8
+- [x] 3.2.1 实现 document store（store/document.ts）- 验证需求 6, 7, 8
 - [~] 3.2.2 编写 document store 单元测试
 - [~] 3.2.3 编写属性测试：分类过滤正确性（属性 8）
 - [~] 3.2.4 编写属性测试：收藏操作可查询性（属性 9）
 
 ### 3.3 用户状态管理
-- [~] 3.3.1 实现 user store（store/user.ts）- 验证需求 9
+- [x] 3.3.1 实现 user store（store/user.ts）- 验证需求 9
 - [~] 3.3.2 编写 user store 单元测试
 
 ## 阶段 4：业务服务层
 
 ### 4.1 聊天服务
-- [~] 4.1.1 实现 ChatManager（services/chatService.ts）- 验证需求 1, 2, 4, 5
-- [~] 4.1.2 实现 MessageHandler
+- [x] 4.1.1 实现 ChatManager（services/chatService.ts）- 验证需求 1, 2, 4, 5
+- [x] 4.1.2 实现 MessageHandler
 - [~] 4.1.3 编写聊天服务单元测试
 - [~] 4.1.4 编写属性测试：流式数据完整性（属性 19）
 
 ### 4.2 文书服务
-- [~] 4.2.1 实现 TemplateManager（services/documentService.ts）- 验证需求 6
+- [-] 4.2.1 实现 TemplateManager（services/documentService.ts）- 验证需求 6
 - [~] 4.2.2 实现 DocumentGenerator - 验证需求 7, 8
 - [~] 4.2.3 编写文书服务单元测试
 - [~] 4.2.4 编写属性测试：模板卡片显示完整信息（属性 10）

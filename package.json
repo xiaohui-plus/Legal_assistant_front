@@ -20,6 +20,7 @@
         "@dcloudio/uni-h5": "^3.0.0-alpha-3090020230817001",
         "@dcloudio/uni-mp-weixin": "^3.0.0-alpha-3090020230817001",
         "@dcloudio/uni-ui": "^1.5.11",
+        "@iconify/vue": "^4.1.1",
         "pinia": "^2.1.7",
         "vue": "^3.3.4"
     },
