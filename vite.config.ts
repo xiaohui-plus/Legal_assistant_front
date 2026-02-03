@@ -1,23 +1,13 @@
 import { defineConfig } from 'vite'
 import uni from '@dcloudio/vite-plugin-uni'
-import { resolve } from 'path'
 
 export default defineConfig({
     plugins: [uni()],
-    resolve: {
-        alias: {
-            '@': resolve(__dirname, '.')
+    server: {
+        port: 5173,
+        strictPort: false,
+        hmr: {
+            overlay: false
         }
-    },
-    css: {
-        preprocessorOptions: {
-            scss: {
-                additionalData: '@import "@/styles/variables.scss";'
-            }
-        }
-    },
-    test: {
-        globals: true,
-        environment: 'jsdom'
     }
 })

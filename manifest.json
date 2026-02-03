@@ -1,110 +1,43 @@
 {
-    "name": "法律助手",
-    "appid": "__UNI__LEGAL_ASSISTANT",
-    "description": "智能法律咨询和文书生成应用",
-    "versionName": "1.0.0",
-    "versionCode": "100",
-    "transformPx": false,
-    "app-plus": {
-        "usingComponents": true,
-        "nvueStyleCompiler": "uni-app",
-        "compilerVersion": 3,
-        "splashscreen": {
-            "alwaysShowBeforeRender": true,
-            "waiting": true,
-            "autoclose": true,
-            "delay": 0
+    "name" : "法律助手",
+    "appid" : "__UNI__2E35B1A",
+    "description" : "",
+    "versionName" : "1.0.0",
+    "versionCode" : "100",
+    "uni-app-x" : {},
+    /* 快应用特有相关 */
+    "quickapp" : {},
+    /* 小程序特有相关 */
+    "mp-weixin" : {
+        "appid" : "",
+        "setting" : {
+            "urlCheck" : false
         },
-        "modules": {},
-        "distribute": {
-            "android": {
-                "permissions": [
-                    "<uses-permission android:name=\"android.permission.INTERNET\"/>",
-                    "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>",
-                    "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>"
-                ]
-            },
-            "ios": {
-                "privacyDescription": {
-                    "NSPhotoLibraryUsageDescription": "用于上传法律证据图片",
-                    "NSPhotoLibraryAddUsageDescription": "用于保存图片到相册"
+        "usingComponents" : true
+    },
+    "mp-alipay" : {
+        "usingComponents" : true
+    },
+    "mp-baidu" : {
+        "usingComponents" : true
+    },
+    "mp-toutiao" : {
+        "usingComponents" : true
+    },
+    "uniStatistics" : {
+        "enable" : false
+    },
+    "vueVersion" : "3",
+    "app" : {
+        "distribute" : {
+            "icons" : {
+                "android" : {
+                    "hdpi" : "",
+                    "xhdpi" : "",
+                    "xxhdpi" : "",
+                    "xxxhdpi" : ""
                 }
-            },
-            "sdkConfigs": {}
-        }
-    },
-    "quickapp": {},
-    "mp-weixin": {
-        "appid": "",
-        "setting": {
-            "urlCheck": false,
-            "es6": true,
-            "enhance": true,
-            "postcss": true,
-            "preloadBackgroundData": false,
-            "minified": true,
-            "newFeature": false,
-            "coverView": true,
-            "nodeModules": true,
-            "autoAudits": false,
-            "showShadowRootInWxmlPanel": true,
-            "scopeDataCheck": false,
-            "uglifyFileName": false,
-            "checkInvalidKey": true,
-            "checkSiteMap": true,
-            "uploadWithSourceMap": true,
-            "compileHotReLoad": false,
-            "lazyloadPlaceholderEnable": false,
-            "useMultiFrameRuntime": true,
-            "useApiHook": true,
-            "useApiHostProcess": true,
-            "babelSetting": {
-                "ignore": [],
-                "disablePlugins": [],
-                "outputPath": ""
-            },
-            "enableEngineNative": false,
-            "useIsolateContext": true,
-            "userConfirmedBundleSwitch": false,
-            "packNpmManually": false,
-            "packNpmRelationList": [],
-            "minifyWXSS": true,
-            "disableUseStrict": false,
-            "minifyWXML": true,
-            "showES6CompileOption": false,
-            "useCompilerPlugins": false
-        },
-        "usingComponents": true,
-        "permission": {
-            "scope.userLocation": {
-                "desc": "用于提供本地法律服务"
             }
         }
-    },
-    "mp-alipay": {
-        "usingComponents": true
-    },
-    "mp-baidu": {
-        "usingComponents": true
-    },
-    "mp-toutiao": {
-        "usingComponents": true
-    },
-    "uniStatistics": {
-        "enable": false
-    },
-    "vueVersion": "3",
-    "h5": {
-        "router": {
-            "mode": "hash",
-            "base": "./"
-        },
-        "optimization": {
-            "treeShaking": {
-                "enable": true
-            }
-        },
-        "title": "法律助手",
-        "template": "index.html"
     }
 }

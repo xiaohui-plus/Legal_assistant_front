@@ -1,0 +1,508 @@
+/**
+ * 法律AI系统API接口封装
+ * Base URL: http://localhost:8001
+ */
+
+// API 基础配置
+const BASE_URL = 'http://localhost:8001'
+const API_VERSION = '/api/v1'
+
+// 存储 token 的 key
+const TOKEN_KEY = 'legal_ai_access_token'
+const USER_INFO_KEY = 'legal_ai_user_info'
+
+// 统一响应格式
+type ApiResponse<T> = {
+	code: number
+	message: string
+	data: T | null
+}
+
+// 用户信息
+type UserInfo = {
+	user_id: number
+	username: string
+	email?: string
+	created_at?: string
+}
+
+// 登录响应
+type LoginResponse = {
+	access_token: string
+	token_type: string
+	expires_in: number
+	user_id: number
+	username: string
+}
+
+// 问答响应
+type QAResponse = {
+	answer: string
+	legal_basis?: Array<{
+		law_name: string
+		article: string
+		content: string
+		relevance_score: number
+	}>
+	suggestions?: string[]
+	session_id: string
+	response_time: number
+}
+
+// 对话历史
+type ConversationMessage = {
+	role: string
+	content: string
+	timestamp: string
+}
+
+type ConversationResponse = {
+	session_id: string
+	messages: ConversationMessage[]
+	created_at: string
+}
+
+// 文书模板
+type DocumentTemplate = {
+	id: string
+	name: string
+	description: string
+	category: string
+	fields_count: number
+	estimated_time: string
+}
+
+// 文书生成会话
+type DocumentSession = {
+	session_id: string
+	template_id: string
+	question: {
+		key: string
+		text: string
+		type: string
+		required: boolean
+		validation?: UTSJSONObject
+	}
+	progress: {
+		current: number
+		total: number
+	}
+}
+
+// 文档信息
+type DocumentInfo = {
+	document_id: string
+	filename: string
+	download_url: string
+	created_at: string
+	expires_at: string
+}
+
+/**
+ * API 工具类
+ */
+class LegalAiApi {
+	private token: string = ''
+	
+	constructor() {
+		// 从本地存储加载 token
+		this.loadToken()
+	}
+	
+	/**
+	 * 加载本地存储的 token
+	 */
+	private loadToken(): void {
+		try {
+			const token = uni.getStorageSync(TOKEN_KEY)
+			if (token) {
+				this.token = token as string
+			}
+		} catch (e) {
+			console.error('加载 token 失败:', e)
+		}
+	}
+	
+	/**
+	 * 保存 token 到本地
+	 */
+	private saveToken(token: string): void {
+		this.token = token
+		uni.setStorageSync(TOKEN_KEY, token)
+	}
+	
+	/**
+	 * 清除 token
+	 */
+	private clearToken(): void {
+		this.token = ''
+		uni.removeStorageSync(TOKEN_KEY)
+		uni.removeStorageSync(USER_INFO_KEY)
+	}
+	
+	/**
+	 * 获取当前 token
+	 */
+	getToken(): string {
+		return this.token
+	}
+	
+	/**
+	 * 检查是否已登录
+	 */
+	isLoggedIn(): boolean {
+		return this.token.length > 0
+	}
+	
+	/**
+	 * 统一请求方法
+	 */
+	private async request<T>(options: {
+		url: string
+		method: 'GET' | 'POST' | 'PUT' | 'DELETE'
+		data?: UTSJSONObject
+		needAuth?: boolean
+	}): Promise<ApiResponse<T>> {
+		const { url, method, data, needAuth = true } = options
+		
+		const header: UTSJSONObject = {
+			'Content-Type': 'application/json'
+		}
+		
+		// 如果需要认证，添加 token
+		if (needAuth && this.token) {
+			header['Authorization'] = `Bearer ${this.token}`
+		}
+		
+		try {
+			const res = await uni.request({
+				url: `${BASE_URL}${API_VERSION}${url}`,
+				method: method,
+				data: data,
+				header: header,
+				timeout: 30000
+			})
+			
+			if (res.statusCode == 401) {
+				// token 过期，清除本地存储
+				this.clearToken()
+				throw new Error('登录已过期，请重新登录')
+			}
+			
+			if (res.statusCode != 200) {
+				throw new Error(`请求失败: ${res.statusCode}`)
+			}
+			
+			return res.data as ApiResponse<T>
+		} catch (e) {
+			console.error('API 请求失败:', e)
+			throw e
+		}
+	}
+	
+	// ==================== 认证 API ====================
+	
+	/**
+	 * 用户注册
+	 */
+	async register(username: string, password: string, email?: string): Promise<UserInfo> {
+		const data: UTSJSONObject = {
+			username: username,
+			password: password
+		}
+		if (email) {
+			data['email'] = email
+		}
+		
+		const res = await this.request<UserInfo>({
+			url: '/auth/register',
+			method: 'POST',
+			data: data,
+			needAuth: false
+		})
+		
+		if (res.code != 200 || res.data == null) {
+			throw new Error(res.message)
+		}
+		
+		return res.data!
+	}
+	
+	/**
+	 * 用户登录
+	 */
+	async login(username: string, password: string): Promise<LoginResponse> {
+		const res = await this.request<LoginResponse>({
+			url: '/auth/login',
+			method: 'POST',
+			data: {
+				username: username,
+				password: password
+			} as UTSJSONObject,
+			needAuth: false
+		})
+		
+		if (res.code != 200 || res.data == null) {
+			throw new Error(res.message)
+		}
+		
+		// 保存 token 和用户信息
+		this.saveToken(res.data!.access_token)
+		uni.setStorageSync(USER_INFO_KEY, {
+			user_id: res.data!.user_id,
+			username: res.data!.username
+		})
+		
+		return res.data!
+	}
+	
+	/**
+	 * 刷新 token
+	 */
+	async refreshToken(): Promise<string> {
+		const res = await this.request<LoginResponse>({
+			url: '/auth/refresh',
+			method: 'POST',
+			needAuth: true
+		})
+		
+		if (res.code != 200 || res.data == null) {
+			throw new Error(res.message)
+		}
+		
+		this.saveToken(res.data!.access_token)
+		return res.data!.access_token
+	}
+	
+	/**
+	 * 登出
+	 */
+	logout(): void {
+		this.clearToken()
+	}
+	
+	// ==================== 法律问答 API ====================
+	
+	/**
+	 * 普通问答
+	 */
+	async ask(question: string, sessionId?: string): Promise<QAResponse> {
+		const data: UTSJSONObject = {
+			question: question
+		}
+		if (sessionId) {
+			data['session_id'] = sessionId
+		}
+		
+		const res = await this.request<QAResponse>({
+			url: '/qa/ask',
+			method: 'POST',
+			data: data
+		})
+		
+		if (res.code != 200 || res.data == null) {
+			throw new Error(res.message)
+		}
+		
+		return res.data!
+	}
+	
+	/**
+	 * 获取对话历史
+	 */
+	async getConversation(sessionId: string): Promise<ConversationResponse> {
+		const res = await this.request<ConversationResponse>({
+			url: `/qa/conversations/${sessionId}`,
+			method: 'GET'
+		})
+		
+		if (res.code != 200 || res.data == null) {
+			throw new Error(res.message)
+		}
+		
+		return res.data!
+	}
+	
+	// ==================== 文书生成 API ====================
+	
+	/**
+	 * 获取文书模板列表
+	 */
+	async getTemplates(): Promise<DocumentTemplate[]> {
+		const res = await this.request<{ templates: DocumentTemplate[] }>({
+			url: '/document/templates',
+			method: 'GET'
+		})
+		
+		if (res.code != 200 || res.data == null) {
+			throw new Error(res.message)
+		}
+		
+		return res.data!.templates
+	}
+	
+	/**
+	 * 开始文书生成
+	 */
+	async startDocumentGeneration(templateId: string): Promise<DocumentSession> {
+		const res = await this.request<DocumentSession>({
+			url: '/document/generate/start',
+			method: 'POST',
+			data: {
+				template_id: templateId
+			} as UTSJSONObject
+		})
+		
+		if (res.code != 200 || res.data == null) {
+			throw new Error(res.message)
+		}
+		
+		return res.data!
+	}
+	
+	/**
+	 * 回答问题
+	 */
+	async answerQuestion(sessionId: string, answer: string): Promise<DocumentSession | { completed: boolean, message: string }> {
+		const res = await this.request<DocumentSession | { completed: boolean, message: string }>({
+			url: '/document/generate/answer',
+			method: 'POST',
+			data: {
+				session_id: sessionId,
+				answer: answer
+			} as UTSJSONObject
+		})
+		
+		if (res.code != 200 || res.data == null) {
+			throw new Error(res.message)
+		}
+		
+		return res.data!
+	}
+	
+	/**
+	 * 完成并生成文档
+	 */
+	async finishDocument(sessionId: string): Promise<DocumentInfo> {
+		const res = await this.request<DocumentInfo>({
+			url: '/document/generate/finish',
+			method: 'POST',
+			data: {
+				session_id: sessionId
+			} as UTSJSONObject
+		})
+		
+		if (res.code != 200 || res.data == null) {
+			throw new Error(res.message)
+		}
+		
+		return res.data!
+	}
+	
+	/**
+	 * 下载文档 URL
+	 */
+	getDownloadUrl(documentId: string): string {
+		return `${BASE_URL}${API_VERSION}/document/download/${documentId}`
+	}
+	
+	// ==================== 文件管理 API ====================
+	
+	/**
+	 * 上传文件
+	 */
+	async uploadFile(filePath: string): Promise<{
+		file_id: string
+		filename: string
+		file_type: string
+		file_size: number
+		file_url: string
+		uploaded_at: string
+	}> {
+		return new Promise((resolve, reject) => {
+			uni.uploadFile({
+				url: `${BASE_URL}${API_VERSION}/upload`,
+				filePath: filePath,
+				name: 'file',
+				header: {
+					'Authorization': `Bearer ${this.token}`
+				},
+				success: (res) => {
+					if (res.statusCode == 200) {
+						const data = JSON.parse<ApiResponse<any>>(res.data)
+						if (data != null && data.code == 200 && data.data != null) {
+							resolve(data.data)
+						} else {
+							reject(new Error(data?.message ?? '上传失败'))
+						}
+					} else {
+						reject(new Error(`上传失败: ${res.statusCode}`))
+					}
+				},
+				fail: (err) => {
+					reject(err)
+				}
+			})
+		})
+	}
+	
+	/**
+	 * 提交反馈
+	 */
+	async submitFeedback(type: string, content: string, rating?: number, contact?: string): Promise<{ feedback_id: number, created_at: string }> {
+		const data: UTSJSONObject = {
+			type: type,
+			content: content
+		}
+		if (rating != null) {
+			data['rating'] = rating
+		}
+		if (contact) {
+			data['contact'] = contact
+		}
+		
+		const res = await this.request<{ feedback_id: number, created_at: string }>({
+			url: '/feedback',
+			method: 'POST',
+			data: data
+		})
+		
+		if (res.code != 200 || res.data == null) {
+			throw new Error(res.message)
+		}
+		
+		return res.data!
+	}
+	
+	// ==================== 系统 API ====================
+	
+	/**
+	 * 健康检查
+	 */
+	async healthCheck(): Promise<UTSJSONObject> {
+		const res = await uni.request({
+			url: `${BASE_URL}/health`,
+			method: 'GET'
+		})
+		
+		if (res.statusCode == 200) {
+			return res.data as UTSJSONObject
+		} else {
+			throw new Error('健康检查失败')
+		}
+	}
+}
+
+// 导出单例
+export const legalAiApi = new LegalAiApi()
+export default legalAiApi
+export type { 
+	ApiResponse, 
+	UserInfo, 
+	LoginResponse, 
+	QAResponse, 
+	ConversationResponse,
+	DocumentTemplate,
+	DocumentSession,
+	DocumentInfo
+}

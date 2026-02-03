@@ -1,65 +1,32 @@
 {
-    "pages": [
-        {
-            "path": "pages/chat/list",
-            "style": {
-                "navigationBarTitleText": "法律咨询",
-                "enablePullDownRefresh": true
-            }
-        },
-        {
-            "path": "pages/chat/window",
-            "style": {
-                "navigationBarTitleText": "聊天"
-            }
-        },
-        {
-            "path": "pages/document/templates",
-            "style": {
-                "navigationBarTitleText": "法律文书"
-            }
-        },
-        {
-            "path": "pages/document/form",
-            "style": {
-                "navigationBarTitleText": "填写参数"
-            }
-        },
-        {
-            "path": "pages/document/preview",
-            "style": {
-                "navigationBarTitleText": "文书预览"
-            }
-        },
-        {
-            "path": "pages/profile/index",
-            "style": {
-                "navigationBarTitleText": "个人中心"
-            }
-        },
-        {
-            "path": "pages/profile/favorites",
-            "style": {
-                "navigationBarTitleText": "我的收藏"
-            }
-        },
-        {
-            "path": "pages/profile/documents",
-            "style": {
-                "navigationBarTitleText": "我的文书"
-            }
-        },
-        {
-            "path": "pages/profile/settings",
-            "style": {
-                "navigationBarTitleText": "设置"
-            }
-        }
-    ],
-    "globalStyle": {
-        "navigationBarTextStyle": "black",
-        "navigationBarTitleText": "法律助手",
-        "navigationBarBackgroundColor": "#FFFFFF",
-        "backgroundColor": "#F5F7FA"
-    }
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "法律AI助手",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "uni_modules/uni-ai-x/pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录/注册",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "uni_modules/uni-ai-x/pages/document/document",
+			"style": {
+				"navigationBarTitleText": "文书生成",
+				"navigationBarBackgroundColor": "#ffffff"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "AI 问答助手",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"uniIdRouter": {}
 }

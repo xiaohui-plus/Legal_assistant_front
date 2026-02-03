@@ -21,7 +21,7 @@
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+// import { Icon } from '@iconify/vue' // 微信小程序不支持
 import KnowledgeCard from '../sidebar/KnowledgeCard.vue'
 import CaseList from '../sidebar/CaseList.vue'
 </script>

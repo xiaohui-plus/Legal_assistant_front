@@ -1,0 +1,319 @@
+<template>
+	<view class="menu-box" :class="[`ui-theme-${uiTheme}`]" :style="{width: menuWidth + 'px'}">
+		<text class="title">法律AI助手</text>
+		<addChatBtn @click="closeMenu()" />
+		
+		<!-- 新增功能入口 -->
+		<view class="feature-section">
+			<view class="feature-item" @click="toLogin" v-if="!isLoggedIn">
+				<uni-icons type="person" size="18" :color="uiTheme == 'light' ? '#667eea' : '#8b9cff'"></uni-icons>
+				<text class="feature-text">登录/注册</text>
+			</view>
+			<view class="feature-item" @click="toDocument">
+				<uni-icons type="compose" size="18" :color="uiTheme == 'light' ? '#667eea' : '#8b9cff'"></uni-icons>
+				<text class="feature-text">文书生成</text>
+			</view>
+		</view>
+		
+		<text class="nav">历史对话</text>
+		<scroll-view :scroll-y="true" class="chat-list">
+			<view v-for="chat in chatDatas" :key="chat.id" @click="setActiveChat(chat)" class="chat-item" :class="{active: chat.id ==  activeChatId}"
+				@longpress="longpress(chat)"
+			>
+				<text class="title" :class="{active: chat.id ==  activeChatId}">{{chat.title}}</text>
+				<view class="more-box" @click.stop="longpress(chat)">
+					<uni-icons type="more-filled" size="14" :color="uiTheme == 'light' ? '#999' : '#ccc'"></uni-icons>
+				</view>
+			</view>
+		</scroll-view>
+		<view class="bottom">
+			<view class="user-info" @click="toUCenter">
+				<image class="avatar" :src="currentUser.avatar_file?.url ?? '/uni_modules/uni-ai-x/static/default-avatar.png'"/>
+				<text v-if="currentUser._id != null" class="name">{{currentUser.nickname ?? '未设置'}}</text>
+				<text v-else class="to-login">未登录</text>
+			</view>
+			<view class="btn-group"  @click="toSetting">
+				<uni-icons class="setting-icon" type="gear-filled" size="20" :color="uiTheme == 'light' ? '#666' : '#FFF'"></uni-icons>
+			</view>
+		</view>
+		<uni-ai-x-setting class="setting-container" ref="uniAiXSettingRef"></uni-ai-x-setting>
+	</view>
+</template>
+
+<script lang="uts" setup>
+	import {uniAi, ChatItem, Userinfo} from '@/uni_modules/uni-ai-x/sdk/'
+	import addChatBtn from '@/uni_modules/uni-ai-x/components/add-chat-btn.uvue'
+	import {userCenterPage} from '@/uni_modules/uni-ai-x/config.uts'
+	import { legalAiApi } from '@/uni_modules/uni-ai-x/sdk/api.uts'
+	
+	type MenuProps = {
+		menuWidth?: number
+	}
+	
+	const props = withDefaults(defineProps<MenuProps>(), {
+		menuWidth: 260
+	})
+	
+	const emit = defineEmits<{
+		'close-menu': []
+	}>()
+	
+	const uiTheme = computed<string>(() => {
+		return uniAi.setting.theme
+	})
+	
+	const currentUser = computed<Userinfo>(() => {
+		return uniAi.currentUser
+	})
+	
+	const activeChatId = computed<string>(() => {
+		return uniAi.chat.activeId
+	})
+	
+	const chatDatas = computed<ChatItem[]>(() => {
+		// 按更新时间排序
+		return uniAi.chat.datas.sort((a, b) => b.update_time - a.update_time)
+	})
+	
+	const isLoggedIn = computed<boolean>(() => {
+		return legalAiApi.isLoggedIn()
+	})
+	
+	const toLogin = () => {
+		uni.navigateTo({
+			url: '/uni_modules/uni-ai-x/pages/login/login'
+		})
+		closeMenu()
+	}
+	
+	const toDocument = () => {
+		if (!legalAiApi.isLoggedIn()) {
+			uni.showModal({
+				title: '提示',
+				content: '请先登录',
+				success: (res) => {
+					if (res.confirm) {
+						toLogin()
+					}
+				}
+			})
+			return
+		}
+		uni.navigateTo({
+			url: '/uni_modules/uni-ai-x/pages/document/document'
+		})
+		closeMenu()
+	}
+	
+	const toUCenter = () => {
+		// 如果未登录，跳转到登录页
+		if (!legalAiApi.isLoggedIn()) {
+			toLogin()
+			return
+		}
+		
+		uni.navigateTo({
+			url: userCenterPage,
+			fail: (err) => {
+				console.error('navigateTo', err, '跳转失败：1. 检查在uni_modules/uni-ai-x/config.uts中配置的用户中心路径 2. 此页面是否已在pages.json中注册')
+				uni.showModal({
+					title: '跳转失败',
+					content: '请检查在 uni_modules/uni-ai-x/config.uts 中配置的用户中心路径是否正确，并确认此页面是否已在pages.json中注册',
+					showCancel: false
+				})
+			}
+		})
+	}
+	
+	const closeMenu = () => {
+		emit('close-menu')
+	}
+	
+	const setActiveChat = (chat: ChatItem) => {
+		uniAi.chat.activeId = chat.id
+		closeMenu()
+	}
+	
+	const longpress = (chat: ChatItem) => {
+		uni.showModal({
+			title: '删除对话',
+			content: '是否删除该对话？',
+			success: (res) => {
+				if (res.confirm) {
+					uniAi.deleteChat(chat.id)
+				}
+			}
+		})
+	}
+	
+	const uniAiXSettingRef = ref<ComponentPublicInstance | null>(null);
+	const toSetting = () => {
+		uniAiXSettingRef.value?.$callMethod('open')
+	}
+</script>
+
+<style lang="scss">
+@import '@/uni_modules/uni-ai-x/static/css/variables.scss';
+.ui-theme-light {
+	--menu-bg: #f9fbff;
+	--menu-active-bg: #eef3ff;
+	--menu-border: #e6ecf5;
+}
+.ui-theme-dark {
+	--menu-bg: #2b2d31;
+	--menu-active-bg: #3a3d45;
+	--menu-border: #404040;
+}
+
+
+.menu-box {
+	/* width 由 props 动态控制 */
+	height: 100%;
+	background-color: var(--menu-bg);
+	border-right: 1px solid var(--menu-border);
+	padding-top: env(safe-area-inset-top);
+	padding-bottom: env(safe-area-inset-bottom);
+	/* #ifdef MP-WEIXIN */
+	padding-top: var(--status-bar-height);
+	/* #endif */
+	.title {
+		padding: 10px;
+		font-size: 18px;
+		font-weight: 700;
+		color: var(--text-primary);
+	}
+	.feature-section {
+		padding: 5px 10px;
+		margin-bottom: 10px;
+		border-bottom: 1px solid var(--menu-border);
+	}
+	.feature-item {
+		flex-direction: row;
+		align-items: center;
+		padding: 10px;
+		margin: 5px 0;
+		border-radius: 8px;
+		background-color: var(--bg-secondary);
+		cursor: pointer;
+		&:hover {
+			background-color: var(--menu-active-bg);
+		}
+		&:active {
+			opacity: 0.8;
+		}
+	}
+	.feature-text {
+		margin-left: 10px;
+		font-size: 14px;
+		color: var(--text-primary);
+	}
+	.nav {
+		padding: 10px;
+		margin-top: 10px;
+		font-size: 16px;
+		color: var(--text-tertiary);
+	}
+	.chat-list {
+		flex: 1;
+		.chat-item {
+			margin:1px 5px;
+			height: 40px;
+			border-radius: 10px;
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: center;
+			.title {
+				color: var(--text-secondary);
+				white-space: nowrap;
+				font-size: 14px;
+				flex: 1;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			.more-box {
+				display: none;
+			}
+			&.active {
+				background-color: var(--menu-active-bg);
+			}
+			.active.title {
+				color: var(--accent-primary);
+			}
+		}
+	}
+	.bottom {
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		padding: 10px;
+		.user-info {
+			flex-direction: row;
+			align-items: center;
+			margin: 10px;
+			.avatar {
+				margin-right: 10px;
+				width: 25px;
+				height: 25px;
+			}
+			.name {
+				font-size: 14px;
+				color: var(--text-primary);
+			}
+			.to-login {
+				font-size: 14px;
+				color: var(--accent-primary);
+			}
+		}
+		.setting-container {
+			@media screen and (min-device-width:960px){
+				::v-deep {
+					.popup-root {
+						width: 100%;
+					}
+				}
+			}
+		}
+		.setting-icon {
+			// #ifdef WEB
+			cursor: pointer;
+			&:hover {
+				filter: brightness(0.5);
+			}
+			// #endif
+		}
+	}
+}
+
+/* #ifdef H5 */
+@media screen and (min-device-width:960px){
+	.menu-box {
+		.chat-item {
+			cursor: pointer;
+			margin: 2px 10px;
+			border-radius: 10px;
+			&:hover {
+				background-color: var(--bg-tertiary);
+			}
+			.more-box {
+				display: flex !important;
+				flex-shrink: 0;
+				margin:0 6px;
+				&:hover {
+					filter: brightness(0.5);
+				}
+			}
+		}
+		.bottom {
+			.user-info {
+				cursor: pointer;
+				&:hover {
+					filter: brightness(0.9);
+				}
+			}
+		}
+	}
+}
+/* #endif */
+
+
+</style> 

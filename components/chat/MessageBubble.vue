@@ -1,141 +1,183 @@
 <template>
-  <view class="message-bubble" :class="[`message-${role}`, { 'animate-slide-in': animate }]">
+  <view class="message-bubble" :class="bubbleClass">
     <!-- AI 消息 -->
-    <template v-if="role === 'assistant'">
-      <view class="message-avatar ai-avatar">
-        <Icon icon="heroicons:sparkles-20-solid" class="avatar-icon" />
+    <view v-if="message.role === 'assistant'" class="message-ai">
+      <view class="avatar-ai">
+        <text class="icon-sparkles">✨</text>
       </view>
-      <view class="message-content-wrapper">
-        <view class="message-content ai-content">
-          <text class="message-text">{{ content }}</text>
+      <view class="content-wrapper">
+        <view class="bubble bubble-ai">
+          <text class="message-text">{{ message.content }}</text>
           
-          <!-- 特殊卡片（如工具卡片） -->
-          <slot name="card"></slot>
+          <!-- 工具卡片示例 -->
+          <view v-if="message.hasToolCard" class="tool-card">
+            <view class="tool-card-content">
+              <text class="tool-icon">🧮</text>
+              <view class="tool-info">
+                <text class="tool-title">补偿金计算工具</text>
+                <text class="tool-desc">输入薪资与工龄自动生成预估报告</text>
+              </view>
+            </view>
+            <text class="chevron">›</text>
+          </view>
         </view>
       </view>
-    </template>
-    
+    </view>
+
     <!-- 用户消息 -->
-    <template v-else>
-      <view class="message-content-wrapper user-wrapper">
-        <view class="message-content user-content">
-          <text class="message-text">{{ content }}</text>
-        </view>
+    <view v-else class="message-user">
+      <view class="avatar-user">
+        <text class="icon-user">👤</text>
       </view>
-      <view class="message-avatar user-avatar">
-        <Icon icon="heroicons:user-20-solid" class="avatar-icon" />
+      <view class="bubble bubble-user">
+        <text class="message-text">{{ message.content }}</text>
       </view>
-    </template>
+    </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+import { computed } from 'vue'
+import type { Message } from '@/types/chat'
 
 interface Props {
-  role: 'user' | 'assistant'
-  content: string
-  animate?: boolean
+  message: Message
 }
 
-withDefaults(defineProps<Props>(), {
-  animate: false
-})
+const props = defineProps<Props>()
+
+const bubbleClass = computed(() => ({
+  'is-ai': props.message.role === 'assistant',
+  'is-user': props.message.role === 'user'
+}))
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
-
 .message-bubble {
+  display: flex;
+  max-width: 100%;
+}
+
+.message-ai {
   display: flex;
   align-items: flex-start;
   gap: 32rpx;
-  margin-bottom: 64rpx;
-  
-  &.animate-slide-in {
-    animation: slideIn 0.3s ease-out forwards;
-  }
+  max-width: 1200rpx;
 }
 
-@keyframes slideIn {
-  from {
-    transform: translateY(20rpx);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+.message-user {
+  display: flex;
+  align-items: flex-start;
+  gap: 32rpx;
+  flex-direction: row-reverse;
+  margin-left: auto;
+  max-width: 80%;
 }
 
-.message-avatar {
-  width: 36rpx;
-  height: 36rpx;
+.avatar-ai {
+  width: 72rpx;
+  height: 72rpx;
+  background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
   border-radius: 16rpx;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 }
 
-.ai-avatar {
-  background-color: #4F46E5;
-  color: white;
-  
-  .avatar-icon {
-    font-size: 20rpx;
-  }
-}
-
-.user-avatar {
+.avatar-user {
+  width: 72rpx;
+  height: 72rpx;
   background-color: #E2E8F0;
-  color: #64748B;
-  
-  .avatar-icon {
-    font-size: 20rpx;
-  }
+  border-radius: 16rpx;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.message-content-wrapper {
+.icon-sparkles,
+.icon-user {
+  font-size: 40rpx;
+}
+
+.content-wrapper {
   flex: 1;
-  max-width: 1280rpx; // max-w-4xl
+  display: flex;
+  flex-direction: column;
+  gap: 32rpx;
 }
 
-.user-wrapper {
-  max-width: 80%;
-  margin-left: auto;
-}
-
-.message-content {
-  border-radius: 32rpx;
+.bubble {
   padding: 40rpx;
+  border-radius: 32rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 }
 
-.ai-content {
-  background-color: white;
-  border: 2rpx solid #E2E8F0;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
-  color: #334155;
+.bubble-ai {
+  background-color: #FFFFFF;
+  border: 1rpx solid #E2E8F0;
+  color: #475569;
 }
 
-.user-content {
-  background-color: #4F46E5;
-  color: white;
-  box-shadow: 0 16rpx 32rpx rgba(79, 70, 229, 0.1);
+.bubble-user {
+  background: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
+  color: #FFFFFF;
+  box-shadow: 0 8rpx 16rpx rgba(79, 70, 229, 0.1);
 }
 
 .message-text {
-  font-size: 28rpx;
+  font-size: 30rpx;
   line-height: 1.6;
   word-wrap: break-word;
 }
 
-.message-assistant {
-  justify-content: flex-start;
+.tool-card {
+  margin-top: 32rpx;
+  background-color: #F8FAFC;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  border: 1rpx solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.3s;
+  
+  &:active {
+    border-color: #C7D2FE;
+    background-color: #EEF2FF;
+  }
 }
 
-.message-user {
-  justify-content: flex-end;
-  flex-direction: row-reverse;
+.tool-card-content {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.tool-icon {
+  font-size: 48rpx;
+}
+
+.tool-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.tool-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.tool-desc {
+  font-size: 24rpx;
+  color: #64748B;
+}
+
+.chevron {
+  font-size: 40rpx;
+  color: #CBD5E1;
 }
 </style>

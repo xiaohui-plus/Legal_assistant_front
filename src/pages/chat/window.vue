@@ -27,7 +27,7 @@
             <!-- 用户消息示例 -->
             <MessageBubble
               role="user"
-              content="帮我草拟一份关于"因客观情况发生重大变化导致合同无法履行"的解除协议。"
+              content="帮我草拟一份关于因客观情况发生重大变化导致合同无法履行的解除协议。"
               :animate="true"
             />
             
@@ -67,7 +67,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Icon } from '@iconify/vue'
+// import { Icon } from '@iconify/vue' // 微信小程序不支持
 import Sidebar from '@/components/layout/Sidebar.vue'
 import Header from '@/components/layout/Header.vue'
 import RightSidebar from '@/components/layout/RightSidebar.vue'

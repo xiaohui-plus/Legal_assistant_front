@@ -39,7 +39,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Icon } from '@iconify/vue'
+// import { Icon } from '@iconify/vue' // 微信小程序不支持
 
 interface NavigationItem {
   key: string

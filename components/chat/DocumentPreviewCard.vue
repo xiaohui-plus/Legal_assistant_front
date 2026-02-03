@@ -2,110 +2,114 @@
   <view class="document-preview-card">
     <!-- 标题栏 -->
     <view class="card-header">
-      <text class="card-title">{{ title }}</text>
+      <text class="header-title">文书预览：{{ documentTitle }}</text>
       <view class="header-actions">
-        <view class="action-icon" @click="handleDownload">
-          <Icon icon="heroicons:arrow-down-tray-20-solid" />
+        <view class="action-btn" @click="handleDownload">
+          <text class="icon">⬇️</text>
         </view>
-        <view class="action-icon" @click="handleEdit">
-          <Icon icon="heroicons:pencil-square-20-solid" />
+        <view class="action-btn" @click="handleEdit">
+          <text class="icon">✏️</text>
         </view>
       </view>
     </view>
-    
+
     <!-- 内容区 -->
-    <view class="card-content">
-      <text class="content-title">{{ documentTitle }}</text>
+    <view class="card-body">
+      <text class="document-title">{{ documentTitle }}</text>
       
-      <!-- 文书内容预览（骨架屏） -->
+      <!-- 模拟文书内容 -->
       <view class="content-skeleton">
         <view class="skeleton-line short"></view>
         <view class="skeleton-line"></view>
         <view class="skeleton-line"></view>
         <view class="skeleton-line medium"></view>
       </view>
-      
+
       <!-- 风险提示 -->
-      <view v-if="riskWarning" class="risk-warning">
-        <text class="warning-label">风险提示：</text>
-        <text class="warning-text">{{ riskWarning }}</text>
+      <view class="risk-notice">
+        <text class="risk-label">风险提示：</text>
+        <text class="risk-text">此场景下解除合同需按《劳动法》支付 N+1 经济补偿金，请确认已足额计算。</text>
       </view>
     </view>
-    
+
     <!-- 快捷操作标签 -->
-    <view class="action-tags">
-      <view
-        v-for="(tag, index) in actionTags"
+    <view class="quick-actions">
+      <view 
+        v-for="(action, index) in quickActions" 
         :key="index"
         class="action-tag"
-        @click="handleTagClick(tag)"
+        @click="handleQuickAction(action)"
       >
-        {{ tag }}
+        <text class="action-text">{{ action }}</text>
       </view>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
-
 interface Props {
-  title?: string
   documentTitle?: string
-  riskWarning?: string
-  actionTags?: string[]
+  quickActions?: string[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  title: '文书预览：劳动合同解除协议书',
   documentTitle: '劳动合同解除协议书',
-  riskWarning: '',
-  actionTags: () => ['修改赔偿金额', '添加离职证明条款', '重新生成预览']
+  quickActions: () => ['修改赔偿金额', '添加离职证明条款', '重新生成预览']
 })
 
 const emit = defineEmits<{
-  (e: 'download'): void
-  (e: 'edit'): void
-  (e: 'tag-click', tag: string): void
+  download: []
+  edit: []
+  quickAction: [action: string]
 }>()
 
 const handleDownload = () => {
   emit('download')
+  uni.showToast({
+    title: '下载文书',
+    icon: 'none'
+  })
 }
 
 const handleEdit = () => {
   emit('edit')
+  uni.showToast({
+    title: '编辑文书',
+    icon: 'none'
+  })
 }
 
-const handleTagClick = (tag: string) => {
-  emit('tag-click', tag)
+const handleQuickAction = (action: string) => {
+  emit('quickAction', action)
+  uni.showToast({
+    title: action,
+    icon: 'none'
+  })
 }
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
-
 .document-preview-card {
-  background-color: white;
-  border: 2rpx solid #E2E8F0;
+  background-color: #FFFFFF;
+  border: 1rpx solid #E2E8F0;
   border-radius: 32rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
   overflow: hidden;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 }
 
 .card-header {
   background-color: #F8FAFC;
-  border-bottom: 2rpx solid #F1F5F9;
+  border-bottom: 1rpx solid #E2E8F0;
   padding: 24rpx 40rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.card-title {
+.header-title {
   font-size: 28rpx;
-  font-weight: bold;
-  color: #334155;
+  font-weight: 700;
+  color: #475569;
 }
 
 .header-actions {
@@ -113,33 +117,33 @@ const handleTagClick = (tag: string) => {
   gap: 16rpx;
 }
 
-.action-icon {
+.action-btn {
   padding: 12rpx;
-  cursor: pointer;
+  border-radius: 12rpx;
   transition: all 0.3s;
-  color: #94A3B8;
-  font-size: 32rpx;
   
-  &:hover {
-    background-color: white;
-    border-radius: 12rpx;
-    color: #4F46E5;
+  &:active {
+    background-color: #FFFFFF;
   }
 }
 
-.card-content {
+.icon {
+  font-size: 32rpx;
+  color: #94A3B8;
+}
+
+.card-body {
   padding: 48rpx;
-  color: #475569;
-  font-size: 28rpx;
   display: flex;
   flex-direction: column;
   gap: 32rpx;
 }
 
-.content-title {
-  font-weight: bold;
-  text-align: center;
+.document-title {
   font-size: 36rpx;
+  font-weight: 700;
+  text-align: center;
+  color: #0F172A;
   margin-bottom: 48rpx;
 }
 
@@ -151,7 +155,7 @@ const handleTagClick = (tag: string) => {
 
 .skeleton-line {
   height: 32rpx;
-  background-color: #F1F5F9;
+  background-color: #E2E8F0;
   border-radius: 8rpx;
   
   &.short {
@@ -159,46 +163,50 @@ const handleTagClick = (tag: string) => {
   }
   
   &.medium {
-    width: 83.33%; // 5/6
+    width: 85%;
   }
 }
 
-.risk-warning {
+.risk-notice {
   padding-top: 32rpx;
   border-top: 2rpx dashed #E2E8F0;
   line-height: 1.6;
 }
 
-.warning-label {
-  color: #4F46E5;
-  font-weight: 500;
+.risk-label {
+  font-size: 28rpx;
+  color: #6366F1;
+  font-weight: 600;
 }
 
-.warning-text {
+.risk-text {
+  font-size: 28rpx;
   color: #475569;
 }
 
-.action-tags {
+.quick-actions {
   margin-top: 32rpx;
-  padding: 0 40rpx 40rpx;
+  padding: 0 48rpx 48rpx;
   display: flex;
   flex-wrap: wrap;
   gap: 16rpx;
 }
 
 .action-tag {
-  padding: 12rpx 24rpx;
-  background-color: white;
-  border: 2rpx solid #E2E8F0;
-  border-radius: 999rpx; // rounded-full
-  font-size: 24rpx;
-  color: #64748B;
-  cursor: pointer;
+  padding: 16rpx 24rpx;
+  background-color: #FFFFFF;
+  border: 1rpx solid #E2E8F0;
+  border-radius: 999rpx;
   transition: all 0.3s;
   
-  &:hover {
-    border-color: #4F46E5;
-    color: #4F46E5;
+  &:active {
+    border-color: #C7D2FE;
+    background-color: #EEF2FF;
   }
+}
+
+.action-text {
+  font-size: 24rpx;
+  color: #64748B;
 }
 </style>

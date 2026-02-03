@@ -1,0 +1,366 @@
+<template>
+	<!-- #ifndef MP-WEIXIN -->
+	<view class="uni-ai-page" :class="{showMenu, [`ui-theme-${uiTheme}`]: true}" :style="{transform: `translateX(${-menuWidth}px)`}">
+		<uni-ai-menu :menu-width="menuWidth" @close-menu="closeMenu"></uni-ai-menu>
+		<!-- 拖动调整宽度的手柄 -->
+		<view 
+			class="resize-handle" 
+			:style="{left: menuWidth + 'px'}"
+			@touchstart="handleResizeStart"
+			@touchmove="handleResizeMove"
+			@touchend="handleResizeEnd"
+			@mousedown="handleResizeStart"
+		></view>
+		<uni-ai-chat :show-menu="showMenu" :translate-x="translateX" :menu-width="menuWidth" @change-menu="changeMenu" @close-menu="closeMenu"></uni-ai-chat>
+	</view>
+	<web-view class="proxy-web" id="proxy-web" src="/uni_modules/uni-ai-x/static/proxy-web/proxy-web.html" @message="proxyWebMsg"></web-view>
+
+	<!-- 用于非 Android 端测量文字宽度的容器 -->
+	<!-- #ifndef APP-ANDROID -->
+	<view style="flex-direction: row;width: 1000%;height: 0;">
+		<text v-for="item in measureTextWidthInfos" :key="item.id" :id="item.id" :style="{fontSize: item.fontSize + 'px'}">{{item.text}}</text>
+	</view>
+	<!-- #endif -->
+	<!-- #endif -->
+	
+	<!-- #ifdef MP-WEIXIN -->
+	<view class="install-tip">
+		<text class="title">⚠️ 缺少必要模块</text>
+		<text class="desc">请先安装 uni-cmark 模块</text>
+		<text class="step">1. 在 HBuilderX 中右键项目</text>
+		<text class="step">2. 选择 uni_modules -> 从插件市场导入</text>
+		<text class="step">3. 搜索并安装 "uni-cmark"</text>
+	</view>
+	<!-- #endif -->
+</template>
+
+<script lang="uts" setup>
+	// #ifndef MP-WEIXIN
+	import uniAiMenu from '@/uni_modules/uni-ai-x/components/uni-ai-menu.uvue'
+	import uniAiChat from '@/uni_modules/uni-ai-x/components/uni-ai-chat.uvue'
+	import proxyWeb from '@/uni_modules/uni-ai-x/sdk/proxy-web.uts'
+	import {uiTheme} from '@/uni_modules/uni-ai-x/sdk'
+	import utils from '@/uni_modules/uni-ai-x/sdk/utils.uts'
+	import { initCmark } from '@/uni_modules/uni-cmark'
+	
+	// 初始化 uni-cmark
+	const initMarkdown = async () => {
+		try {
+			await initCmark()
+			console.log('uni-cmark 初始化成功')
+		} catch (error) {
+			console.error('uni-cmark 初始化失败:', error)
+		}
+	}
+	
+	// 立即初始化
+	initMarkdown()
+	
+	// 菜单宽度相关
+	const MIN_MENU_WIDTH = 200
+	const MAX_MENU_WIDTH = 500
+	const DEFAULT_MENU_WIDTH = 260
+	
+	const menuWidth = ref<number>(DEFAULT_MENU_WIDTH)
+	const startX = ref<number>(0)
+	const translateX = ref<number>(-menuWidth.value)
+	const isDragging = ref<boolean>(false)
+	const isMoveing = ref<boolean>(false)
+	const showMenu = ref<boolean>(false)
+	const isResizing = ref<boolean>(false)
+	const resizeStartX = ref<number>(0)
+	const resizeStartWidth = ref<number>(0)
+	
+	// 从本地存储加载菜单宽度
+	const loadMenuWidth = () => {
+		try {
+			const savedWidth = uni.getStorageSync('menu-width')
+			if (savedWidth && savedWidth >= MIN_MENU_WIDTH && savedWidth <= MAX_MENU_WIDTH) {
+				menuWidth.value = savedWidth
+				translateX.value = -savedWidth
+			}
+		} catch (e) {
+			console.log('加载菜单宽度失败', e)
+		}
+	}
+	
+	// 保存菜单宽度到本地存储
+	const saveMenuWidth = (width: number) => {
+		try {
+			uni.setStorageSync('menu-width', width)
+		} catch (e) {
+			console.log('保存菜单宽度失败', e)
+		}
+	}
+	
+	// 调整宽度的手柄事件
+	const handleResizeStart = (event: any) => {
+		isResizing.value = true
+		resizeStartX.value = event.touches ? event.touches[0].pageX : event.pageX
+		resizeStartWidth.value = menuWidth.value
+		
+		// #ifdef WEB
+		// 阻止文本选择
+		document.body.style.userSelect = 'none'
+		// 添加鼠标移动和释放事件监听
+		document.addEventListener('mousemove', handleMouseMove)
+		document.addEventListener('mouseup', handleMouseUp)
+		// #endif
+	}
+	
+	const handleResizeMove = (event: any) => {
+		if (!isResizing.value) return
+		
+		const currentX = event.touches ? event.touches[0].pageX : event.pageX
+		const diffX = currentX - resizeStartX.value
+		let newWidth = resizeStartWidth.value + diffX
+		
+		// 限制宽度范围
+		if (newWidth < MIN_MENU_WIDTH) newWidth = MIN_MENU_WIDTH
+		if (newWidth > MAX_MENU_WIDTH) newWidth = MAX_MENU_WIDTH
+		
+		menuWidth.value = newWidth
+		translateX.value = -newWidth
+	}
+	
+	const handleResizeEnd = () => {
+		if (isResizing.value) {
+			isResizing.value = false
+			saveMenuWidth(menuWidth.value)
+			
+			// #ifdef WEB
+			document.body.style.userSelect = ''
+			document.removeEventListener('mousemove', handleMouseMove)
+			document.removeEventListener('mouseup', handleMouseUp)
+			// #endif
+		}
+	}
+	
+	// #ifdef WEB
+	const handleMouseMove = (event: MouseEvent) => {
+		handleResizeMove(event)
+	}
+	
+	const handleMouseUp = () => {
+		handleResizeEnd()
+	}
+	// #endif
+	
+	const setMenu = (show: boolean) => {
+		showMenu.value = show
+		translateX.value = show ? 0 : -menuWidth.value
+	}
+	
+	const changeMenu = () => {
+		setMenu(!showMenu.value)
+	}
+	
+	const touchStart = (event: TouchEvent) => {
+		startX.value = event.touches[0].pageX
+	}
+	
+	const touchMove = (event: TouchEvent) => {
+		if (!isDragging.value) return
+		isMoveing.value = true
+		
+		const currentX = event.touches[0].pageX
+		const diffX = currentX - startX.value
+		
+		let newTranslateX = showMenu.value ? diffX : -menuWidth.value + diffX
+		
+		if (newTranslateX > 0) newTranslateX = 0
+		if (newTranslateX < -menuWidth.value) newTranslateX = -menuWidth.value
+		
+		translateX.value = newTranslateX
+	}
+	
+	const touchEnd = () => {
+		nextTick(()=>{
+			isMoveing.value = false
+		})
+		if (!isDragging.value) return
+		isDragging.value = false
+		if (translateX.value > -menuWidth.value / 2) {
+			setMenu(true)
+		} else {
+			setMenu(false)
+		}
+	}
+	
+	const closeMenu = () => {
+		if (isMoveing.value) return
+		setMenu(false)
+	}
+
+	const proxyWebMsg = (e: UniWebViewMessageEvent) => {
+		proxyWeb.onWebMsg(e)
+	}
+
+	// 测量文字宽度的方法
+	type MeasureTextWidthInfo = {
+		id: string,
+		text: string,
+		fontSize?: number
+	}
+
+	// #ifndef APP-ANDROID
+	const proxy = getCurrentInstance()?.proxy
+	const measureTextWidthInfos = ref<MeasureTextWidthInfo[]>([])
+	utils.measureTextWidth = async (text: string, fontSize?: number) => {
+		fontSize = fontSize ?? 16
+		const id = `measure-text-width-${measureTextWidthInfos.value.length}`
+		measureTextWidthInfos.value.push({id, text, fontSize})
+		return new Promise((resolve) => {
+			setTimeout(() => {
+				uni.createSelectorQuery().in(proxy).select(`#${id}`)
+					.boundingClientRect().exec((ret) => {
+						resolve(ret.length == 0 ? 0 : ret[0].width!)
+						measureTextWidthInfos.value = measureTextWidthInfos.value.filter((item) => item.id != id)
+					})
+			},0)
+		})
+	}
+	// #endif
+	
+	onMounted(() => {
+		// 加载保存的菜单宽度
+		loadMenuWidth()
+		
+		// #ifdef WEB
+		window.addEventListener('resize', () => {
+			setMenu(window.innerWidth > 960)
+		})
+		const proxyWebContext = document.getElementById('proxy-web')
+		// #endif
+		// #ifndef WEB || MP-WEIXIN
+		const proxyWebContext = uni.createWebviewContext('proxy-web')
+		// #endif
+		// #ifndef MP-WEIXIN
+		proxyWeb.init(proxyWebContext!)
+		// #endif
+	})
+	
+	onUnmounted(() => {
+		// #ifdef WEB
+		document.removeEventListener('mousemove', handleMouseMove)
+		document.removeEventListener('mouseup', handleMouseUp)
+		// #endif
+	})
+	// #endif
+</script>
+
+<style lang="scss">
+@import '@/uni_modules/uni-ai-x/static/css/variables.scss';
+
+.install-tip {
+	flex: 1;
+	justify-content: center;
+	align-items: center;
+	padding: 40px;
+	background-color: #f5f5f5;
+	.title {
+		font-size: 24px;
+		font-weight: bold;
+		color: #ff6b6b;
+		margin-bottom: 20px;
+	}
+	.desc {
+		font-size: 16px;
+		color: #666;
+		margin-bottom: 30px;
+	}
+	.step {
+		font-size: 14px;
+		color: #333;
+		margin: 5px 0;
+		padding-left: 20px;
+	}
+}
+
+.uni-ai-page {
+	position: fixed;
+	// #ifdef H5
+	width: calc(100% + var(--menu-width, 260px));
+	// #endif
+	transform: translateX(calc(-1 * var(--menu-width, 260px)));
+	height: 100%;
+	flex-direction: row;
+	background-color: var(--bg-primary);
+	transition: transform 0.3s;
+	&.showMenu {
+		transform: translateX(0) !important;
+	}
+	::v-deep .uni-ai-msg-table {
+		.uni-table {
+			background-color: var(--uni-table-bg-color) !important;
+		}
+		.uni-table-th, .uni-table-td, .table--border {
+			border: 1px solid var(--uni-table-border-color) !important;
+		}
+		.uni-table-text {
+			color: var(--uni-table-color) !important;
+		}
+	}
+}
+
+.resize-handle {
+	position: absolute;
+	top: 0;
+	width: 8px;
+	height: 100%;
+	cursor: ew-resize;
+	z-index: 1000;
+	transition: background-color 0.2s;
+	
+	&:hover {
+		background-color: rgba(64, 158, 255, 0.3);
+	}
+	
+	&:active {
+		background-color: rgba(64, 158, 255, 0.5);
+	}
+	
+	// 增加触摸区域
+	&::before {
+		content: '';
+		position: absolute;
+		left: -4px;
+		right: -4px;
+		top: 0;
+		bottom: 0;
+	}
+	
+	// 视觉指示器
+	&::after {
+		content: '';
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		transform: translate(-50%, -50%);
+		width: 2px;
+		height: 40px;
+		background-color: rgba(128, 128, 128, 0.3);
+		border-radius: 1px;
+	}
+}
+
+/* #ifdef H5 */
+@media screen and (min-device-width:960px){
+	.uni-ai-page {
+		transition: transform 0.3s, width 0.3s;
+		&.showMenu {
+			width: 100%;
+		}
+	}
+}
+/* #endif */
+
+.proxy-web {
+	position: fixed;
+	top: -1100px;
+	right: 0;
+	width: 100%;
+	height: 400px;
+	z-index: 100;
+}
+</style>

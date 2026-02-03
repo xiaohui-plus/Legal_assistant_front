@@ -1,0 +1,83 @@
+<template>
+	<view class="uni-im-setting" :class="[`ui-theme-${uiTheme}`]">
+		<uni-popup ref="popupRef">
+			<view class="popup-content">
+				<text class="title">系统设置</text>
+				<!-- 设置主题 -->
+				<view class="item">
+					<text class="label">暗黑模式</text>
+					<switch class="switch" color="#111" :checked="isDarkMode" @change="onThemeChange" />
+				</view>
+				<!-- 大语言模型切换功能已隐藏 -->
+			</view>
+		</uni-popup>
+		<!-- 模型选择弹窗已移除 -->
+	</view>
+</template>
+
+<script lang="uts" setup>
+	import {uniAi, uiTheme} from '@/uni_modules/uni-ai-x/sdk';
+	import {Theme} from '@/uni_modules/uni-ai-x/types.uts';
+	
+	const popupRef = ref<ComponentPublicInstance | null>(null)
+	
+	// 计算当前是否为暗黑模式
+	const isDarkMode = computed<boolean>(() => {
+		return uiTheme.value == 'dark'
+	})
+	
+	const popupRefMethod = (): ComponentPublicInstance => {
+		return popupRef.value as ComponentPublicInstance
+	}
+	
+	const open = () => {
+		popupRefMethod().$callMethod('open');
+	}
+	
+	const close = () => {
+		popupRefMethod().$callMethod('close');
+	}
+	
+	// 主题切换事件处理
+	const onThemeChange = (event: UniSwitchChangeEvent) => {
+		uniAi.setting.theme = event.detail.value ? 'dark' : 'light'
+	}
+	
+	defineExpose({
+		open,
+		close
+	})
+</script>
+
+<style lang="scss">
+@import '@/uni_modules/uni-ai-x/static/css/variables.scss';
+.uni-im-setting {
+	.popup-content {
+		background-color: var(--bg-primary);
+		width: 320px;
+		height: auto;
+		max-height: 500rpx;
+		border-radius: 16px;
+		padding: 20px;
+		.title {
+			font-size: 18px;
+			font-weight: 700;
+			margin-bottom: 16px;
+			color: var(--text-primary);
+		}
+		.item {
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: center;
+			padding: 14px 0;
+			.switch {
+				transform: scale(0.8);
+			}
+			.label {
+				font-size: 16px;
+				color: var(--text-primary);
+			}
+		}
+	}
+}
+</style>

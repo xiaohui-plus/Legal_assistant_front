@@ -1,191 +1,240 @@
 <template>
-  <view class="chat-window-page">
-    <!-- 三栏布局 -->
-    <view class="layout-container">
-      <!-- 左侧导航栏 -->
-      <Sidebar />
-      
-      <!-- 主内容区 -->
-      <view class="main-content">
-        <!-- 顶部 Header -->
-        <Header :title="currentTitle" />
-        
-        <!-- 聊天消息区域 -->
-        <scroll-view
-          class="messages-container hide-scrollbar"
-          scroll-y
-          :scroll-into-view="scrollToView"
-        >
-          <view class="messages-list">
-            <!-- AI 消息示例 -->
-            <MessageBubble
-              role="assistant"
-              content="您好！我是您的法律助手。根据 2026年02月01日 最新的法律法规，关于您提到的劳动争议补偿，主要参考《中华人民共和国劳动合同法》第47条。"
-              :animate="true"
-            />
-            
-            <!-- 用户消息示例 -->
-            <MessageBubble
-              role="user"
-              content="帮我草拟一份关于"因客观情况发生重大变化导致合同无法履行"的解除协议。"
-              :animate="true"
-            />
-            
-            <!-- 文书预览卡片示例 -->
-            <view class="message-bubble message-assistant">
-              <view class="message-avatar ai-avatar">
-                <Icon icon="heroicons:document-text-20-solid" class="avatar-icon" />
-              </view>
-              <view class="message-content-wrapper">
-                <DocumentPreviewCard
-                  title="文书预览：劳动合同解除协议书"
-                  document-title="劳动合同解除协议书"
-                  risk-warning="此场景下解除合同需按《劳动法》支付 N+1 经济补偿金，请确认已足额计算。"
-                  @download="handleDownload"
-                  @edit="handleEdit"
-                  @tag-click="handleTagClick"
-                />
-              </view>
-            </view>
-          </view>
-        </scroll-view>
-        
-        <!-- 消息输入区 -->
-        <MessageInput
-          :loading="isLoading"
-          @send="handleSend"
-          @attachment="handleAttachment"
-          @voice="handleVoice"
-        />
+  <view class="chat-window">
+    <!-- 顶部 Header -->
+    <view class="header">
+      <view class="header-left">
+        <text class="header-label">当前对话：</text>
+        <text class="header-title">{{ currentSession?.title || '新对话' }}</text>
       </view>
-      
-      <!-- 右侧工具栏 -->
-      <RightSidebar />
+      <view class="header-right">
+        <view class="share-btn" @click="handleShare">
+          <text class="icon">📤</text>
+          <text class="share-text">分享报告</text>
+        </view>
+        <view class="divider"></view>
+        <view class="avatar" @click="goToProfile">
+          <image :src="userAvatar" mode="aspectFill" />
+        </view>
+      </view>
+    </view>
+
+    <!-- 聊天消息区 -->
+    <scroll-view 
+      class="messages-container" 
+      scroll-y 
+      :scroll-into-view="scrollToView"
+      :scroll-with-animation="true"
+    >
+      <view class="messages-list">
+        <view 
+          v-for="message in messages" 
+          :key="message.id"
+          :id="`msg-${message.id}`"
+          class="message-wrapper"
+          :class="message.role === 'user' ? 'message-user' : 'message-ai'"
+        >
+          <MessageBubble :message="message" />
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 输入区域 -->
+    <view class="input-container">
+      <MessageInput 
+        @send="handleSendMessage"
+        @attach="handleAttach"
+        @voice="handleVoice"
+      />
+      <view class="disclaimer">
+        AI 生成内容仅供参考，不构成正式法律意见
+      </view>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { Icon } from '@iconify/vue'
-import Sidebar from '@/components/layout/Sidebar.vue'
-import Header from '@/components/layout/Header.vue'
-import RightSidebar from '@/components/layout/RightSidebar.vue'
+import { ref, computed, onMounted } from 'vue'
+import { useChatStore } from '@/store/chat'
+import { useUserStore } from '@/store/user'
 import MessageBubble from '@/components/chat/MessageBubble.vue'
 import MessageInput from '@/components/chat/MessageInput.vue'
-import DocumentPreviewCard from '@/components/chat/DocumentPreviewCard.vue'
+import type { Message } from '@/types/chat'
 
-// 状态
-const currentTitle = ref('劳动争议补偿标准咨询')
-const isLoading = ref(false)
+const chatStore = useChatStore()
+const userStore = useUserStore()
+
 const scrollToView = ref('')
 
-// 发送消息
-const handleSend = (content: string) => {
-  console.log('发送消息:', content)
-  // TODO: 实现发送消息逻辑
+const currentSession = computed(() => chatStore.currentSession)
+const messages = computed(() => chatStore.currentMessages)
+const userAvatar = computed(() => userStore.profile?.avatar || '/static/images/default-avatar.png')
+
+const handleSendMessage = async (content: string) => {
+  await chatStore.sendMessage(content)
+  scrollToBottom()
 }
 
-// 附件上传
-const handleAttachment = () => {
-  console.log('上传附件')
-  // TODO: 实现附件上传
+const handleAttach = () => {
+  uni.chooseImage({
+    count: 1,
+    success: (res) => {
+      // 处理图片上传
+      console.log('选择图片:', res.tempFilePaths)
+    }
+  })
 }
 
-// 语音输入
 const handleVoice = () => {
-  console.log('语音输入')
-  // TODO: 实现语音输入
+  uni.showToast({
+    title: '语音功能开发中',
+    icon: 'none'
+  })
 }
 
-// 下载文书
-const handleDownload = () => {
-  console.log('下载文书')
-  // TODO: 实现下载功能
+const handleShare = () => {
+  uni.showShareMenu({
+    withShareTicket: true
+  })
 }
 
-// 编辑文书
-const handleEdit = () => {
-  console.log('编辑文书')
-  // TODO: 实现编辑功能
+const goToProfile = () => {
+  uni.navigateTo({
+    url: '/pages/profile/index'
+  })
 }
 
-// 标签点击
-const handleTagClick = (tag: string) => {
-  console.log('标签点击:', tag)
-  // TODO: 实现标签操作
+const scrollToBottom = () => {
+  if (messages.value.length > 0) {
+    const lastMessage = messages.value[messages.value.length - 1]
+    scrollToView.value = `msg-${lastMessage.id}`
+  }
 }
+
+onMounted(() => {
+  scrollToBottom()
+})
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/variables.scss';
-
-.chat-window-page {
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-}
-
-.layout-container {
-  display: flex;
-  height: 100vh;
-  background-color: #F8FAFC;
-}
-
-.main-content {
-  flex: 1;
+.chat-window {
   display: flex;
   flex-direction: column;
+  height: 100vh;
   background-color: #F8FAFC;
-  position: relative;
-  margin-left: 256px; /* 左侧边栏宽度 */
-  margin-right: 320px; /* 右侧边栏宽度 */
+}
+
+.header {
+  height: 128rpx;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(24rpx);
+  border-bottom: 1rpx solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 64rpx;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.header-label {
+  font-size: 28rpx;
+  color: #94A3B8;
+  margin-right: 16rpx;
+}
+
+.header-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #475569;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.share-btn {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 16rpx;
+  cursor: pointer;
+}
+
+.icon {
+  font-size: 32rpx;
+  margin-right: 8rpx;
+}
+
+.share-text {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #64748B;
+}
+
+.divider {
+  width: 2rpx;
+  height: 32rpx;
+  background-color: #E2E8F0;
+  margin: 0 32rpx;
+}
+
+.avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2rpx solid #CBD5E1;
+  
+  image {
+    width: 100%;
+    height: 100%;
+  }
 }
 
 .messages-container {
   flex: 1;
   overflow-y: auto;
-  padding: 48rpx 64rpx;
 }
 
 .messages-list {
+  padding: 48rpx 64rpx;
   display: flex;
   flex-direction: column;
   gap: 64rpx;
 }
 
-// 消息气泡样式（用于文书预览卡片）
-.message-bubble {
-  display: flex;
-  align-items: flex-start;
-  gap: 32rpx;
+.message-wrapper {
+  animation: slideIn 0.3s ease-out forwards;
 }
 
-.message-assistant {
-  justify-content: flex-start;
-}
-
-.message-avatar {
-  width: 36rpx;
-  height: 36rpx;
-  border-radius: 16rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.ai-avatar {
-  background-color: #4F46E5;
-  color: white;
-  
-  .avatar-icon {
-    font-size: 20rpx;
+@keyframes slideIn {
+  from {
+    transform: translateY(20rpx);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 
-.message-content-wrapper {
-  flex: 1;
-  max-width: 1280rpx;
+.input-container {
+  padding: 48rpx;
+  background: transparent;
+}
+
+.disclaimer {
+  text-align: center;
+  font-size: 20rpx;
+  color: #94A3B8;
+  margin-top: 24rpx;
+  text-transform: uppercase;
+  letter-spacing: 3rpx;
 }
 </style>

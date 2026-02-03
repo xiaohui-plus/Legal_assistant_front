@@ -1,16 +1,23 @@
 {
     "pages": [
         {
-            "path": "pages/chat/list",
+            "path": "pages/chat/main",
             "style": {
-                "navigationBarTitleText": "法律咨询",
-                "enablePullDownRefresh": true
+                "navigationBarTitleText": "法律助手",
+                "navigationStyle": "custom"
             }
         },
         {
             "path": "pages/chat/window",
             "style": {
-                "navigationBarTitleText": "聊天"
+                "navigationBarTitleText": "法律助手"
+            }
+        },
+        {
+            "path": "pages/chat/list",
+            "style": {
+                "navigationBarTitleText": "法律咨询",
+                "enablePullDownRefresh": true
             }
         },
         {
@@ -56,32 +63,6 @@
             }
         }
     ],
-    "tabBar": {
-        "color": "#999999",
-        "selectedColor": "#165DFF",
-        "backgroundColor": "#FFFFFF",
-        "borderStyle": "black",
-        "list": [
-            {
-                "pagePath": "pages/chat/list",
-                "text": "咨询",
-                "iconPath": "static/icons/chat.png",
-                "selectedIconPath": "static/icons/chat-active.png"
-            },
-            {
-                "pagePath": "pages/document/templates",
-                "text": "文书",
-                "iconPath": "static/icons/document.png",
-                "selectedIconPath": "static/icons/document-active.png"
-            },
-            {
-                "pagePath": "pages/profile/index",
-                "text": "我的",
-                "iconPath": "static/icons/profile.png",
-                "selectedIconPath": "static/icons/profile-active.png"
-            }
-        ]
-    },
     "globalStyle": {
         "navigationBarTextStyle": "black",
         "navigationBarTitleText": "法律助手",
