@@ -4,28 +4,21 @@
   "description": "法义AI助手 - 专业的法律AI咨询和文书生成应用",
   "main": "main.js",
   "scripts": {
-    "serve": "npm run dev:h5",
-    "build": "npm run build:h5",
-    "dev:h5": "cross-env NODE_ENV=development UNI_PLATFORM=h5 vue-cli-service uni-serve",
-    "build:h5": "cross-env NODE_ENV=production UNI_PLATFORM=h5 vue-cli-service uni-build",
-    "dev:mp-weixin": "cross-env NODE_ENV=development UNI_PLATFORM=mp-weixin vue-cli-service uni-build --watch",
-    "build:mp-weixin": "cross-env NODE_ENV=production UNI_PLATFORM=mp-weixin vue-cli-service uni-build"
+    "serve": "uni serve",
+    "build": "uni build",
+    "dev:h5": "uni serve --platform h5",
+    "build:h5": "uni build --platform h5",
+    "dev:mp-weixin": "uni serve --platform mp-weixin",
+    "build:mp-weixin": "uni build --platform mp-weixin",
+    "dev:app": "uni serve --platform app",
+    "build:app": "uni build --platform app"
   },
   "dependencies": {
-    "@dcloudio/uni-app": "2.0.2-3081220230817001",
-    "@dcloudio/uni-components": "2.0.2-3081220230817001", 
-    "@dcloudio/uni-h5": "2.0.2-3081220230817001",
-    "@dcloudio/uni-mp-weixin": "2.0.2-3081220230817001",
     "vue": "^2.6.14",
     "vuex": "^3.6.2"
   },
   "devDependencies": {
-    "@dcloudio/types": "^2.6.9",
-    "@dcloudio/vue-cli-plugin-uni": "2.0.2-3081220230817001",
-    "@vue/cli-plugin-babel": "~4.5.19",
-    "@vue/cli-service": "~4.5.19",
-    "babel-plugin-import": "^1.13.8",
-    "cross-env": "^7.0.2",
+    "@dcloudio/cli": "^2.0.0",
     "sass": "^1.32.13",
     "sass-loader": "^10.4.1"
   },
@@ -33,9 +26,6 @@
     "Android >= 4.4",
     "ios >= 9"
   ],
-  "uni-app": {
-    "scripts": {}
-  },
   "keywords": [
     "uniapp",
     "legal",

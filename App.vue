@@ -6,8 +6,7 @@
 </template>
 
 <script>
-import { mapState } from 'pinia'
-import { useUserStore } from '@/store/user'
+import { mapState, mapActions } from 'vuex'
 
 export default {
 	name: 'App',
@@ -22,7 +21,8 @@ export default {
 		}
 	},
 	computed: {
-		...mapState(useUserStore, ['isLoggedIn', 'userInfo'])
+		...mapState('user', ['isLoggedIn', 'userInfo']),
+		...mapState(['networkStatus'])
 	},
 	onLaunch: function() {
 		console.log('App Launch')
@@ -35,32 +35,16 @@ export default {
 		console.log('App Hide')
 	},
 	methods: {
+		...mapActions(['initApp']),
+		
 		async initApp() {
 			// 初始化应用
 			try {
-				// 检查登录状态
-				const userStore = useUserStore()
-				await userStore.checkLoginStatus()
-				
-				// 检查网络状态
-				this.checkNetworkStatus()
-				
+				await this.$store.dispatch('initApp')
+				console.log('应用初始化完成')
 			} catch (error) {
 				console.error('应用初始化失败:', error)
 			}
-		},
-		
-		checkNetworkStatus() {
-			uni.getNetworkType({
-				success: (res) => {
-					if (res.networkType === 'none') {
-						uni.showToast({
-							title: '网络连接失败',
-							icon: 'none'
-						})
-					}
-				}
-			})
 		}
 	}
 }
