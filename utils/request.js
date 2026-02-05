@@ -2,7 +2,7 @@
  * 网络请求封装
  */
 
-const BASE_URL = 'http://localhost:8001'
+const BASE_URL = 'http://localhost:8002'
 
 // 请求拦截器
 const requestInterceptor = (config) => {

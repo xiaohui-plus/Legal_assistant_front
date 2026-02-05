@@ -1,6 +1,6 @@
 {
     "name": "法义AI助手",
-    "appid": "__UNI__LEGAL_AI",
+    "appid": "__UNI__LEGAL_AI_CUSTOM",
     "description": "专业的法律AI咨询和文书生成助手",
     "versionName": "1.0.0",
     "versionCode": "100",
@@ -61,6 +61,15 @@
     },
     "h5": {
         "title": "法义AI助手",
-        "template": "index.html"
+        "template": "index.html",
+        "devServer": {
+            "proxy": {
+                "/api": {
+                    "target": "http://localhost:8002",
+                    "changeOrigin": true,
+                    "secure": false
+                }
+            }
+        }
     }
 }

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>法律条文查询功能调试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f7f8fa;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .feature-card {
+            padding: 20px;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .feature-card:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            transform: translateY(-2px);
+        }
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        .feature-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        .feature-desc {
+            font-size: 14px;
+            color: #6b7280;
+        }
+        .debug-info {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .legal-articles-interface {
+            display: none;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+        .legal-articles-interface.show {
+            display: block;
+        }
+        .search-box {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px 0 0 8px;
+            font-size: 16px;
+        }
+        .search-btn {
+            padding: 12px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+        }
+        .categories {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .category-card {
+            padding: 16px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .category-card:hover {
+            border-color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">法律条文查询功能调试</h1>
+        
+        <div class="feature-card" onclick="testLegalClick()">
+            <div class="feature-icon">📖</div>
+            <div class="feature-title">法律条文查询</div>
+            <div class="feature-desc">快速查找相关法律条文和司法解释</div>
+        </div>
+        
+        <div class="debug-info" id="debugInfo">
+            点击上方卡片测试法律条文查询功能...
+        </div>
+        
+        <div class="legal-articles-interface" id="legalInterface">
+            <h2>法律条文查询界面</h2>
+            
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="请输入法律条文关键词..." id="searchInput">
+                <button class="search-btn" onclick="searchArticles()">🔍 搜索</button>
+            </div>
+            
+            <div class="categories">
+                <div class="category-card" onclick="selectCategory('民法典')">
+                    <div>📖 民法典</div>
+                    <small>1260条</small>
+                </div>
+                <div class="category-card" onclick="selectCategory('劳动法')">
+                    <div>💼 劳动法</div>
+                    <small>107条</small>
+                </div>
+                <div class="category-card" onclick="selectCategory('刑法')">
+                    <div>⚖️ 刑法</div>
+                    <small>452条</small>
+                </div>
+                <div class="category-card" onclick="selectCategory('行政法')">
+                    <div>🏛️ 行政法</div>
+                    <small>328条</small>
+                </div>
+            </div>
+            
+            <div id="searchResults"></div>
+        </div>
+    </div>
+
+    <script>
+        function testLegalClick() {
+            const debugInfo = document.getElementById('debugInfo');
+            const legalInterface = document.getElementById('legalInterface');
+            
+            debugInfo.innerHTML = `
+                <strong>✅ 法律条文查询功能被点击！</strong><br>
+                时间: ${new Date().toLocaleString()}<br>
+                状态: 正在跳转到法律条文查询界面...<br>
+                <br>
+                <strong>预期行为:</strong> 显示法律条文查询界面，而不是跳转到聊天<br>
+                <strong>实际行为:</strong> 成功显示法律条文查询界面 ✅
+            `;
+            
+            // 显示法律条文查询界面
+            legalInterface.classList.add('show');
+            
+            // 滚动到界面
+            legalInterface.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function selectCategory(category) {
+            const debugInfo = document.getElementById('debugInfo');
+            debugInfo.innerHTML += `<br><strong>选择分类:</strong> ${category}`;
+            
+            // 模拟搜索该分类
+            searchArticles(category);
+        }
+        
+        async function searchArticles(category = null) {
+            const searchInput = document.getElementById('searchInput');
+            const searchResults = document.getElementById('searchResults');
+            const keyword = category || searchInput.value;
+            
+            if (!keyword) {
+                alert('请输入搜索关键词或选择分类');
+                return;
+            }
+            
+            searchResults.innerHTML = '<div>🔍 正在搜索法律条文...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:8001/api/legal-articles/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        keyword: keyword,
+                        category: category ? getCategoryId(category) : null
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displaySearchResults(data.data.articles, data.data.total);
+                } else {
+                    searchResults.innerHTML = '<div>❌ 搜索失败: ' + data.message + '</div>';
+                }
+            } catch (error) {
+                console.error('搜索失败:', error);
+                searchResults.innerHTML = '<div>❌ 搜索失败: ' + error.message + '</div>';
+            }
+        }
+        
+        function getCategoryId(categoryName) {
+            const categoryMap = {
+                '民法典': 1,
+                '劳动法': 2,
+                '刑法': 3,
+                '行政法': 4
+            };
+            return categoryMap[categoryName] || null;
+        }
+        
+        function displaySearchResults(articles, total) {
+            const searchResults = document.getElementById('searchResults');
+            
+            if (articles.length === 0) {
+                searchResults.innerHTML = '<div>📖 未找到相关条文</div>';
+                return;
+            }
+            
+            let html = `<h3>搜索结果 (共${total}条)</h3>`;
+            
+            articles.forEach(article => {
+                html += `
+                    <div style="background: white; padding: 16px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <h4 style="margin: 0 0 8px 0; color: #1f2937;">${article.title}</h4>
+                        <div style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">
+                            <span style="background: rgba(102, 126, 234, 0.1); padding: 2px 8px; border-radius: 4px; color: #667eea;">${article.law_name}</span>
+                            <span style="margin-left: 8px;">${article.chapter}</span>
+                        </div>
+                        <p style="line-height: 1.6; color: #374151; margin: 8px 0;">${article.content}</p>
+                        <div style="text-align: right; font-size: 12px; color: #9ca3af;">
+                            生效日期：${article.effective_date}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            searchResults.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

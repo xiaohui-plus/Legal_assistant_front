@@ -375,7 +375,7 @@ export default {
 			
 			try {
 				const response = await uni.request({
-					url: 'http://localhost:8001/api/documents/generate',
+					url: 'http://localhost:8002/api/documents/generate',
 					method: 'POST',
 					header: {
 						'Content-Type': 'application/json'

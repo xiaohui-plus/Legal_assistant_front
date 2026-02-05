@@ -7,6 +7,9 @@ import '@/static/css/common.scss'
 
 Vue.config.productionTip = false
 
+// 禁用uni-ai相关功能
+Vue.prototype.$uniAI = null
+
 App.mpType = 'app'
 
 const app = new Vue({

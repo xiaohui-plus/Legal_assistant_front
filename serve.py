@@ -16,6 +16,10 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        # 禁用缓存
+        self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+        self.send_header('Pragma', 'no-cache')
+        self.send_header('Expires', '0')
         super().end_headers()
 
 if __name__ == "__main__":
@@ -24,6 +28,6 @@ if __name__ == "__main__":
     with socketserver.TCPServer(("", PORT), MyHTTPRequestHandler) as httpd:
         print(f"🌐 前端服务器启动成功！")
         print(f"📱 访问地址: http://localhost:{PORT}/index.html")
-        print(f"🔗 后端API: http://localhost:8001")
+        print(f"🔗 后端API: http://localhost:8002")
         print(f"\n按 Ctrl+C 停止服务器")
         httpd.serve_forever()

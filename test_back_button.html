@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>返回按钮测试 - 法义AI助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background: #f7f8fa;
+            height: 100vh;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .chat-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #e8eaed;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        
+        .back-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #f3f4f6;
+            border-radius: 8px;
+            color: #6b7280;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .back-btn:hover {
+            background: #e5e7eb;
+            color: #374151;
+            transform: translateX(-2px);
+        }
+        
+        .back-btn:active {
+            transform: scale(0.95) translateX(-2px);
+            background: #d1d5db;
+        }
+        
+        .chat-title-main {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .demo-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .demo-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+        
+        .demo-desc {
+            font-size: 16px;
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+        
+        .test-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .test-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .test-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 16px;
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            color: #0369a1;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 style="text-align: center; margin-bottom: 30px; color: #1f2937;">返回按钮功能测试</h1>
+        
+        <!-- 模拟聊天头部 -->
+        <div class="chat-header">
+            <div class="header-left">
+                <button class="back-btn" onclick="testBackButton()" title="返回主页">←</button>
+                <div class="chat-title-main" id="chatTitle">劳动合同试用期多久</div>
+            </div>
+            <div class="header-actions">
+                <button style="padding: 8px; border: none; background: #f3f4f6; border-radius: 6px; color: #6b7280;">📄</button>
+                <button style="padding: 8px; border: none; background: #f3f4f6; border-radius: 6px; color: #6b7280;">👤</button>
+            </div>
+        </div>
+        
+        <!-- 演示内容 -->
+        <div class="demo-content">
+            <div class="demo-title">返回按钮样式演示</div>
+            <div class="demo-desc">
+                点击左上角的返回按钮 (←) 可以返回到主界面。<br>
+                按钮具有悬停效果和点击动画。
+            </div>
+            
+            <div class="test-buttons">
+                <button class="test-btn" onclick="changeTitle('劳动合同试用期多久')">劳动合同问题</button>
+                <button class="test-btn" onclick="changeTitle('离婚需要什么手续')">离婚手续咨询</button>
+                <button class="test-btn" onclick="changeTitle('交通事故如何处理')">交通事故处理</button>
+                <button class="test-btn" onclick="changeTitle('查询民法典相关条文')">法律条文查询</button>
+            </div>
+            
+            <div class="status" id="status">
+                ✅ 返回按钮已添加到聊天标题左侧<br>
+                🎨 具有现代化的悬停和点击效果<br>
+                📱 在移动端和桌面端都能正常显示
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function testBackButton() {
+            document.getElementById('status').innerHTML = `
+                🔄 返回按钮被点击！<br>
+                ✅ 功能正常工作<br>
+                📍 实际应用中会返回到欢迎界面
+            `;
+            
+            // 模拟返回效果
+            setTimeout(() => {
+                document.getElementById('chatTitle').textContent = '法义AI助手';
+                document.getElementById('status').innerHTML = `
+                    🏠 已返回主界面<br>
+                    ✨ 标题已重置为默认值<br>
+                    🎉 返回功能测试完成
+                `;
+            }, 500);
+        }
+        
+        function changeTitle(title) {
+            document.getElementById('chatTitle').textContent = title;
+            document.getElementById('status').innerHTML = `
+                📝 聊天标题已更改为: "${title}"<br>
+                ← 点击返回按钮可以回到主界面<br>
+                🎯 测试不同的标题长度和内容
+            `;
+        }
+    </script>
+</body>
+</html>

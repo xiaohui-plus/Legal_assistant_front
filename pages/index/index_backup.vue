@@ -37,8 +37,8 @@
 					<button class="mobile-menu-btn" @click="openSidebar" v-if="!showSidebar">☰</button>
 					<button 
 						class="back-btn" 
-						@click="goToWelcome" 
-						v-if="currentView !== 'welcome'"
+						@click="backToWelcome" 
+						v-if="!showWelcome"
 						title="返回主页"
 					>
 						←
@@ -55,7 +55,7 @@
 			</view>
 			
 			<!-- 欢迎界面 -->
-			<view class="welcome-screen" v-if="currentView === 'welcome'">
+			<view class="welcome-screen" v-if="showWelcome">
 				<view class="welcome-icon">⚖️</view>
 				<view class="welcome-title">欢迎使用法义AI助手</view>
 				<view class="welcome-subtitle">您的专业法律顾问，提供24小时智能法律咨询服务</view>
@@ -75,7 +75,7 @@
 						<view class="feature-title">文书智能审核</view>
 						<view class="feature-desc">上传现有文书进行合规性检查和优化建议</view>
 					</view>
-					<view class="feature-card" @click="goToLegalArticles">
+					<view class="feature-card" @click="startLegalChat">
 						<view class="feature-icon">📖</view>
 						<view class="feature-title">法律条文查询</view>
 						<view class="feature-desc">快速查找相关法律条文和司法解释</view>
@@ -83,118 +83,10 @@
 				</view>
 			</view>
 			
-			<!-- 法律条文查询界面 -->
-			<view class="legal-articles-screen" v-if="currentView === 'legal-articles'">
-				<view class="legal-header">
-					<view class="legal-icon">📖</view>
-					<view class="legal-title">法律条文查询</view>
-					<view class="legal-subtitle">快速查找相关法律条文和司法解释</view>
-				</view>
-				
-				<!-- 搜索区域 -->
-				<view class="search-section">
-					<view class="search-container">
-						<view class="search-box">
-							<input 
-								class="search-input" 
-								type="text" 
-								v-model="searchKeyword"
-								placeholder="请输入法律条文关键词..."
-								@confirm="handleLegalSearch"
-							/>
-							<button class="search-btn" @click="handleLegalSearch">
-								<text>🔍</text>
-							</button>
-						</view>
-					</view>
-				</view>
-				
-				<!-- 法律分类 -->
-				<view class="categories-section">
-					<view class="section-title">热门法律分类</view>
-					<view class="categories-grid">
-						<view 
-							v-for="category in legalCategories" 
-							:key="category.id"
-							class="category-card"
-							:class="{ active: selectedCategory === category.id }"
-							@click="selectLegalCategory(category)"
-						>
-							<view class="category-icon">{{ category.icon }}</view>
-							<view class="category-info">
-								<view class="category-name">{{ category.name }}</view>
-								<view class="category-count">{{ category.articles_count }}条</view>
-							</view>
-						</view>
-					</view>
-				</view>
-				
-				<!-- 热门查询 -->
-				<view class="popular-section">
-					<view class="section-title">热门查询</view>
-					<view class="popular-grid">
-						<view 
-							v-for="item in popularQueries" 
-							:key="item.id"
-							class="popular-card"
-							@click="searchPopularQuery(item.keyword)"
-						>
-							<view class="popular-icon">{{ item.icon }}</view>
-							<view class="popular-content">
-								<view class="popular-title">{{ item.title }}</view>
-								<view class="popular-desc">{{ item.description }}</view>
-							</view>
-						</view>
-					</view>
-				</view>
-				
-				<!-- 搜索结果 -->
-				<view class="results-section" v-if="searchResults.length > 0">
-					<view class="section-header">
-						<view class="section-title">搜索结果</view>
-						<view class="result-count">共找到 {{ totalResults }} 条相关条文</view>
-					</view>
-					
-					<view class="articles-list">
-						<view 
-							v-for="article in searchResults" 
-							:key="article.id"
-							class="article-card"
-							@click="viewArticleDetail(article)"
-						>
-							<view class="article-header">
-								<view class="article-title">{{ article.title }}</view>
-								<view class="article-meta">
-									<text class="law-name">{{ article.law_name }}</text>
-									<text class="chapter">{{ article.chapter }}</text>
-								</view>
-							</view>
-							<view class="article-content">{{ article.content }}</view>
-							<view class="article-footer">
-								<text class="effective-date">生效日期：{{ article.effective_date }}</text>
-							</view>
-						</view>
-					</view>
-				</view>
-				
-				<!-- 加载状态 -->
-				<view class="loading-state" v-if="isSearching">
-					<view class="loading-icon">🔍</view>
-					<view class="loading-text">正在搜索法律条文...</view>
-				</view>
-				
-				<!-- 空状态 -->
-				<view class="empty-state" v-if="!isSearching && searchKeyword && searchResults.length === 0">
-					<view class="empty-icon">📖</view>
-					<view class="empty-title">未找到相关条文</view>
-					<view class="empty-desc">请尝试其他关键词或浏览分类</view>
-				</view>
-			</view>
-			
 			<!-- 消息区域 -->
 			<scroll-view 
 				class="messages-container" 
-				v-if="currentView === 'chat'"
+				v-if="!showWelcome"
 				scroll-y 
 				:scroll-top="scrollTop"
 				scroll-with-animation
@@ -231,7 +123,7 @@
 			</scroll-view>
 			
 			<!-- 输入区域 -->
-			<view class="input-area" v-if="currentView === 'chat'">
+			<view class="input-area" v-if="!showWelcome">
 				<view class="quick-questions">
 					<view class="quick-question" @click="sendQuickQuestion('劳动合同试用期最长多久？')">劳动合同问题</view>
 					<view class="quick-question" @click="sendQuickQuestion('离婚需要什么手续？')">离婚手续</view>
@@ -298,7 +190,6 @@ export default {
 			sidebarOpen: false,
 			showUserMenuFlag: false,
 			showWelcome: true,
-			currentView: 'welcome', // 'welcome', 'legal-articles', 'chat'
 			isTyping: false,
 			scrollTop: 0,
 			
@@ -308,89 +199,6 @@ export default {
 			messageInput: '',
 			chats: [],
 			currentMessages: [],
-			
-			// 法律查询相关
-			searchKeyword: '',
-			selectedCategory: null,
-			isSearching: false,
-			searchResults: [],
-			totalResults: 0,
-			
-			legalCategories: [
-				{
-					id: 1,
-					name: '民法典',
-					description: '中华人民共和国民法典',
-					icon: '📖',
-					articles_count: 1260
-				},
-				{
-					id: 2,
-					name: '劳动法',
-					description: '中华人民共和国劳动法',
-					icon: '💼',
-					articles_count: 107
-				},
-				{
-					id: 3,
-					name: '刑法',
-					description: '中华人民共和国刑法',
-					icon: '⚖️',
-					articles_count: 452
-				},
-				{
-					id: 4,
-					name: '行政法',
-					description: '行政法律法规',
-					icon: '🏛️',
-					articles_count: 328
-				}
-			],
-			
-			popularQueries: [
-				{
-					id: 1,
-					title: '劳动合同试用期',
-					description: '试用期长度、工资、解除等规定',
-					keyword: '试用期',
-					icon: '💼'
-				},
-				{
-					id: 2,
-					title: '婚姻登记离婚',
-					description: '结婚、离婚的法定程序',
-					keyword: '离婚',
-					icon: '💒'
-				},
-				{
-					id: 3,
-					title: '交通事故处理',
-					description: '事故责任、赔偿标准',
-					keyword: '交通事故',
-					icon: '🚗'
-				},
-				{
-					id: 4,
-					title: '房屋买卖租赁',
-					description: '房产交易、租赁合同',
-					keyword: '房屋',
-					icon: '🏠'
-				},
-				{
-					id: 5,
-					title: '合同纠纷处理',
-					description: '合同违约、解除、赔偿',
-					keyword: '合同',
-					icon: '📄'
-				},
-				{
-					id: 6,
-					title: '知识产权保护',
-					description: '专利、商标、著作权',
-					keyword: '知识产权',
-					icon: '💡'
-				}
-			],
 			
 			// API配置
 			apiBase: 'http://localhost:8001'
@@ -418,140 +226,6 @@ export default {
 			this.checkLoginStatus()
 		},
 		
-		// 跳转到法律条文查询页面 - 主要方法
-		goToLegalArticles() {
-			console.log('=== 跳转到法律条文查询 ===');
-			console.log('当前视图:', this.currentView);
-			
-			// 设置当前视图
-			this.currentView = 'legal-articles';
-			this.showWelcome = false;
-			this.chatTitle = '法律条文查询';
-			
-			// 清理聊天相关状态
-			this.currentChatId = null;
-			this.currentMessages = [];
-			this.isTyping = false;
-			
-			// 重置搜索状态
-			this.searchResults = [];
-			this.searchKeyword = '';
-			this.selectedCategory = null;
-			this.isSearching = false;
-			
-			console.log('跳转完成，当前视图:', this.currentView);
-			
-			uni.showToast({
-				title: '法律条文查询',
-				icon: 'success',
-				duration: 1000
-			});
-		},
-		
-		// 返回欢迎界面
-		goToWelcome() {
-			console.log('返回欢迎界面');
-			this.currentView = 'welcome';
-			this.showWelcome = true;
-			this.chatTitle = '法义AI助手';
-			this.currentChatId = null;
-			this.currentMessages = [];
-			this.searchResults = [];
-			this.searchKeyword = '';
-			this.selectedCategory = null;
-		},
-		
-		// 开始聊天
-		startChat(topic) {
-			console.log('=== startChat 被调用 ===');
-			console.log('topic:', topic);
-			
-			this.currentView = 'chat';
-			this.showWelcome = false;
-			this.createNewChat();
-			if (topic !== '智能法律咨询') {
-				this.sendQuickQuestion(`我想了解${topic}相关的内容`);
-			}
-		},
-		
-		// 法律条文搜索
-		async handleLegalSearch() {
-			if (!this.searchKeyword.trim()) {
-				uni.showToast({
-					title: '请输入搜索关键词',
-					icon: 'none'
-				});
-				return;
-			}
-			
-			this.isSearching = true;
-			
-			try {
-				const response = await uni.request({
-					url: `${this.apiBase}/api/legal-articles/search`,
-					method: 'POST',
-					header: {
-						'Content-Type': 'application/json'
-					},
-					data: {
-						keyword: this.searchKeyword,
-						category: this.selectedCategory
-					}
-				});
-				
-				if (response.data.success) {
-					this.searchResults = response.data.data.articles;
-					this.totalResults = response.data.data.total;
-					
-					if (this.searchResults.length === 0) {
-						uni.showToast({
-							title: '未找到相关条文',
-							icon: 'none'
-						});
-					}
-				} else {
-					throw new Error(response.data.message || '搜索失败');
-				}
-			} catch (error) {
-				console.error('搜索失败:', error);
-				uni.showToast({
-					title: '搜索失败，请重试',
-					icon: 'none'
-				});
-			} finally {
-				this.isSearching = false;
-			}
-		},
-		
-		// 选择法律分类
-		selectLegalCategory(category) {
-			if (this.selectedCategory === category.id) {
-				this.selectedCategory = null;
-			} else {
-				this.selectedCategory = category.id;
-			}
-			
-			if (this.searchKeyword) {
-				this.handleLegalSearch();
-			}
-		},
-		
-		// 搜索热门查询
-		searchPopularQuery(keyword) {
-			this.searchKeyword = keyword;
-			this.handleLegalSearch();
-		},
-		
-		// 查看条文详情
-		viewArticleDetail(article) {
-			uni.showModal({
-				title: article.title,
-				content: `${article.content}\n\n法律名称：${article.law_name}\n章节：${article.chapter}\n生效日期：${article.effective_date}`,
-				showCancel: false,
-				confirmText: '知道了'
-			});
-		},
-		
 		// 创建新对话
 		createNewChat() {
 			const chatId = 'chat_' + Date.now()
@@ -570,18 +244,67 @@ export default {
 		
 		// 切换到指定对话
 		switchToChat(chatId) {
-			this.currentChatId = chatId;
-			this.currentView = 'chat';
-			this.showWelcome = false;
+			this.currentChatId = chatId
+			this.showWelcome = false
 			
-			const chat = this.chats.find(c => c.id === chatId);
+			const chat = this.chats.find(c => c.id === chatId)
 			if (chat) {
-				this.chatTitle = chat.title;
-				this.currentMessages = chat.messages;
+				this.chatTitle = chat.title
+				this.currentMessages = chat.messages
 			}
 			
-			this.closeSidebar();
-			this.scrollToBottom();
+			this.closeSidebar()
+			this.scrollToBottom()
+		},
+		
+		// 开始聊天
+		startChat(topic) {
+			this.createNewChat()
+			if (topic !== '智能法律咨询') {
+				this.sendQuickQuestion(`我想了解${topic}相关的内容`)
+			}
+		},
+		
+		// 开始法律条文查询聊天
+		startLegalChat() {
+			console.log('开始法律条文查询聊天')
+			this.createNewChat()
+			this.chatTitle = '法律条文查询'
+			
+			// 发送法律条文查询的欢迎消息
+			const welcomeMessage = {
+				id: 'legal_welcome_' + Date.now(),
+				type: 'ai',
+				content: `欢迎使用法律条文查询功能！
+
+📖 **功能介绍**：
+• 快速查找相关法律条文
+• 支持关键词搜索
+• 提供司法解释和实施细则
+• 涵盖民法典、劳动法、刑法等主要法律
+
+🔍 **使用方法**：
+请输入您要查询的法律条文关键词，例如：
+• "试用期" - 查询劳动合同试用期相关条文
+• "离婚" - 查询婚姻法相关条文  
+• "交通事故" - 查询道路交通安全法相关条文
+
+您也可以直接提问，我会为您查找相关的法律条文。`,
+				timestamp: new Date()
+			}
+			
+			const chat = this.chats.find(c => c.id === this.currentChatId)
+			if (chat) {
+				chat.messages.push(welcomeMessage)
+				chat.title = '法律条文查询'
+				this.currentMessages = [...chat.messages]
+				this.saveChats()
+			}
+			
+			uni.showToast({
+				title: '法律条文查询',
+				icon: 'success'
+			})
 		},
 		
 		// 发送消息
@@ -725,6 +448,14 @@ export default {
 			if (chat.messages.length === 0) return '暂无消息'
 			const lastMsg = chat.messages[chat.messages.length - 1].content
 			return lastMsg.length > 30 ? lastMsg.slice(0, 30) + '...' : lastMsg
+		},
+		
+		// 返回欢迎界面
+		backToWelcome() {
+			this.showWelcome = true
+			this.currentChatId = null
+			this.chatTitle = '法义AI助手'
+			this.currentMessages = []
 		},
 		
 		// 滚动到底部
@@ -1159,318 +890,6 @@ export default {
 	line-height: 1.4;
 }
 
-/* 法律条文查询界面样式 */
-.legal-articles-screen {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	padding: 24px;
-	overflow-y: auto;
-}
-
-.legal-header {
-	text-align: center;
-	margin-bottom: 32px;
-}
-
-.legal-icon {
-	width: 80px;
-	height: 80px;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-	border-radius: 20px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: white;
-	font-size: 32px;
-	margin: 0 auto 24px;
-}
-
-.legal-title {
-	font-size: 24px;
-	font-weight: 600;
-	color: #1f2937;
-	margin-bottom: 8px;
-}
-
-.legal-subtitle {
-	font-size: 16px;
-	color: #6b7280;
-}
-
-.search-section {
-	margin-bottom: 32px;
-}
-
-.search-container {
-	max-width: 600px;
-	margin: 0 auto;
-}
-
-.search-box {
-	display: flex;
-	align-items: center;
-	background: #f8fafc;
-	border: 2px solid #e2e8f0;
-	border-radius: 24px;
-	overflow: hidden;
-	transition: border-color 0.3s;
-}
-
-.search-box:focus-within {
-	border-color: #667eea;
-}
-
-.search-input {
-	flex: 1;
-	padding: 16px 24px;
-	border: none;
-	background: transparent;
-	font-size: 16px;
-	outline: none;
-}
-
-.search-btn {
-	width: 56px;
-	height: 56px;
-	background: #667eea;
-	color: white;
-	border: none;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 20px;
-	transition: background 0.3s;
-}
-
-.search-btn:hover {
-	background: #5a6fd8;
-}
-
-.categories-section,
-.popular-section,
-.results-section {
-	margin-bottom: 32px;
-}
-
-.section-title {
-	font-size: 20px;
-	font-weight: 600;
-	color: #1f2937;
-	margin-bottom: 16px;
-}
-
-.section-header {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	margin-bottom: 16px;
-}
-
-.result-count {
-	font-size: 14px;
-	color: #6b7280;
-}
-
-.categories-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-	gap: 16px;
-}
-
-.category-card {
-	display: flex;
-	align-items: center;
-	gap: 16px;
-	padding: 20px;
-	background: #f8fafc;
-	border: 2px solid #e2e8f0;
-	border-radius: 16px;
-	cursor: pointer;
-	transition: all 0.3s;
-}
-
-.category-card:hover {
-	background: #f1f5f9;
-	border-color: #cbd5e1;
-	transform: translateY(-2px);
-}
-
-.category-card.active {
-	background: #667eea;
-	border-color: #667eea;
-	color: white;
-}
-
-.category-icon {
-	width: 48px;
-	height: 48px;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-	border-radius: 12px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 20px;
-	color: white;
-}
-
-.category-card.active .category-icon {
-	background: rgba(255, 255, 255, 0.2);
-}
-
-.category-name {
-	font-size: 16px;
-	font-weight: 600;
-	margin-bottom: 4px;
-}
-
-.category-count {
-	font-size: 14px;
-	opacity: 0.8;
-}
-
-.popular-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-	gap: 16px;
-}
-
-.popular-card {
-	display: flex;
-	align-items: center;
-	gap: 16px;
-	padding: 20px;
-	background: #f8fafc;
-	border: 1px solid #e2e8f0;
-	border-radius: 16px;
-	cursor: pointer;
-	transition: all 0.3s;
-}
-
-.popular-card:hover {
-	background: #f1f5f9;
-	border-color: #cbd5e1;
-	transform: translateY(-2px);
-}
-
-.popular-icon {
-	width: 48px;
-	height: 48px;
-	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-	border-radius: 12px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 20px;
-	color: white;
-	flex-shrink: 0;
-}
-
-.popular-title {
-	font-size: 16px;
-	font-weight: 600;
-	color: #1f2937;
-	margin-bottom: 4px;
-}
-
-.popular-desc {
-	font-size: 14px;
-	color: #6b7280;
-	line-height: 1.4;
-}
-
-.articles-list {
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-}
-
-.article-card {
-	padding: 24px;
-	background: white;
-	border: 1px solid #e2e8f0;
-	border-radius: 16px;
-	cursor: pointer;
-	transition: all 0.3s;
-}
-
-.article-card:hover {
-	border-color: #cbd5e1;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-	transform: translateY(-2px);
-}
-
-.article-header {
-	margin-bottom: 12px;
-}
-
-.article-title {
-	font-size: 18px;
-	font-weight: 600;
-	color: #1f2937;
-	margin-bottom: 8px;
-}
-
-.article-meta {
-	display: flex;
-	gap: 12px;
-	flex-wrap: wrap;
-}
-
-.law-name {
-	font-size: 12px;
-	color: #667eea;
-	background: rgba(102, 126, 234, 0.1);
-	padding: 4px 8px;
-	border-radius: 8px;
-}
-
-.chapter {
-	font-size: 12px;
-	color: #6b7280;
-}
-
-.article-content {
-	font-size: 14px;
-	line-height: 1.6;
-	color: #374151;
-	margin-bottom: 12px;
-}
-
-.article-footer {
-	text-align: right;
-}
-
-.effective-date {
-	font-size: 12px;
-	color: #9ca3af;
-}
-
-.loading-state,
-.empty-state {
-	text-align: center;
-	padding: 60px 24px;
-}
-
-.loading-icon,
-.empty-icon {
-	font-size: 48px;
-	margin-bottom: 16px;
-	opacity: 0.6;
-}
-
-.loading-text,
-.empty-title {
-	font-size: 18px;
-	color: #374151;
-	margin-bottom: 8px;
-}
-
-.empty-desc {
-	font-size: 14px;
-	color: #6b7280;
-}
-
 /* 消息区域 */
 .messages-container {
 	flex: 1;
@@ -1611,6 +1030,7 @@ export default {
 	border-radius: 20px;
 	font-size: 13px;
 	color: #475569;
+	cursor: pointer;
 }
 
 .input-container {
@@ -1691,43 +1111,12 @@ export default {
 	gap: 12px;
 	font-size: 14px;
 	color: #374151;
+	cursor: pointer;
 }
 
 .user-menu-divider {
 	height: 1px;
 	background: #e8eaed;
 	margin: 8px 0;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-	.legal-articles-screen {
-		padding: 16px;
-	}
-	
-	.legal-icon {
-		width: 60px;
-		height: 60px;
-		font-size: 24px;
-	}
-	
-	.legal-title {
-		font-size: 20px;
-	}
-	
-	.categories-grid,
-	.popular-grid {
-		grid-template-columns: 1fr;
-	}
-	
-	.search-input {
-		padding: 12px 16px;
-		font-size: 14px;
-	}
-	
-	.search-btn {
-		width: 48px;
-		height: 48px;
-	}
 }
 </style>

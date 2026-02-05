@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重新设计的法律查询功能测试</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f7f8fa;
+        }
+        .container { 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        .test-btn {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .test-btn:hover {
+            background: #5a6fd8;
+        }
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 13px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .changes-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .changes-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .changes-list li:before {
+            content: "✅ ";
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 重新设计的法律查询功能</h1>
+        <p>完全重新设计了状态管理和跳转逻辑，解决命名冲突和跳转问题</p>
+        
+        <div class="section">
+            <div class="section-title">🎯 重新设计的核心改进</div>
+            <ul class="changes-list">
+                <li>使用 <code>currentView</code> 统一管理界面状态</li>
+                <li>重新设计所有跳转方法，避免命名冲突</li>
+                <li>添加详细的调试日志</li>
+                <li>简化状态管理逻辑</li>
+                <li>增强错误处理和状态重置</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">🔄 新的状态管理</div>
+            <div class="code-block">
+// 新的状态管理方式
+data() {
+    return {
+        currentView: 'welcome', // 'welcome', 'legal-articles', 'chat'
+        showWelcome: true,
+        // 移除了 showLegalArticlesPage 避免命名冲突
+    }
+}
+
+// 新的跳转方法
+goToLegalArticles() {
+    this.currentView = 'legal-articles';
+    this.showWelcome = false;
+    // 清理所有相关状态
+}
+
+goToWelcome() {
+    this.currentView = 'welcome';
+    this.showWelcome = true;
+    // 重置所有状态
+}
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">🧪 测试功能</div>
+            <button class="test-btn" onclick="testMainPage()">测试主页面</button>
+            <button class="test-btn" onclick="testConsoleLog()">检查控制台日志</button>
+            <button class="test-btn" onclick="openMainPage()">打开主页面测试</button>
+            <div id="testResult"></div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">📋 测试步骤</div>
+            <div class="status info">
+                <strong>请按以下步骤测试：</strong>
+                <ol>
+                    <li>点击下方"打开主页面测试"按钮</li>
+                    <li>在新页面中点击"法律条文查询"功能卡片</li>
+                    <li>观察是否正确跳转到法律查询界面</li>
+                    <li>打开浏览器开发者工具查看控制台日志</li>
+                    <li>测试返回按钮功能</li>
+                </ol>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">🔍 问题排查</div>
+            <div class="status warning">
+                <strong>如果仍然跳转到聊天界面，可能的原因：</strong>
+                <ul>
+                    <li>浏览器缓存问题 - 尝试强制刷新 (Ctrl+F5)</li>
+                    <li>UniApp编译问题 - 检查控制台错误信息</li>
+                    <li>JavaScript执行错误 - 查看开发者工具控制台</li>
+                    <li>Vue响应式更新问题 - 检查数据绑定</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">✅ 预期结果</div>
+            <div class="status success">
+                点击法律条文查询功能卡片后应该看到：
+                <ul>
+                    <li>页面标题变为"法律条文查询"</li>
+                    <li>显示法律查询专用界面</li>
+                    <li>包含搜索框、分类卡片、热门查询</li>
+                    <li>控制台输出相关调试信息</li>
+                    <li>返回按钮可以回到主页</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function testMainPage() {
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.innerHTML = '<div class="info">正在测试主页面访问...</div>';
+            
+            fetch('./index.html')
+                .then(response => {
+                    if (response.ok) {
+                        resultDiv.innerHTML = `
+                            <div class="success">
+                                ✅ 主页面可以正常访问
+                                <br>状态码: ${response.status}
+                                <br>现在可以测试法律查询功能
+                            </div>
+                        `;
+                    } else {
+                        resultDiv.innerHTML = `
+                            <div class="error">
+                                ❌ 主页面访问失败
+                                <br>状态码: ${response.status}
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            ❌ 主页面测试失败: ${error.message}
+                        </div>
+                    `;
+                });
+        }
+        
+        function testConsoleLog() {
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.innerHTML = `
+                <div class="info">
+                    <strong>控制台日志检查：</strong>
+                    <br>1. 打开浏览器开发者工具 (F12)
+                    <br>2. 切换到 Console 标签
+                    <br>3. 点击法律条文查询功能卡片
+                    <br>4. 查看是否有以下日志输出：
+                    <br>• "=== 开始跳转到法律条文查询 ==="
+                    <br>• "执行跳转到法律条文查询"
+                    <br>• "跳转完成，当前视图: legal-articles"
+                </div>
+            `;
+        }
+        
+        function openMainPage() {
+            window.open('./index.html', '_blank');
+        }
+        
+        // 页面加载时自动测试
+        window.onload = function() {
+            setTimeout(testMainPage, 500);
+        };
+    </script>
+</body>
+</html>

@@ -148,6 +148,39 @@
             justify-content: space-between;
         }
         
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+        
+        .back-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: #f3f4f6;
+            border-radius: 8px;
+            color: #6b7280;
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .back-btn:hover {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        
+        .back-btn:active {
+            transform: scale(0.95);
+            background: #d1d5db;
+        }
+        
         .chat-title-main {
             font-size: 16px;
             font-weight: 600;
@@ -751,12 +784,22 @@
         
         .mobile-menu-btn {
             display: none;
-            padding: 8px;
+            width: 32px;
+            height: 32px;
             border: none;
-            background: none;
-            border-radius: 6px;
-            cursor: pointer;
+            background: #f3f4f6;
+            border-radius: 8px;
             color: #6b7280;
+            font-size: 16px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        
+        .mobile-menu-btn:hover {
+            background: #e5e7eb;
+            color: #374151;
         }
         
         .overlay {
@@ -911,14 +954,17 @@
         <!-- 主内容区域 -->
         <div class="main-content">
             <div class="chat-header">
-                <button class="mobile-menu-btn" onclick="openSidebar()">☰</button>
-                <div class="chat-title-main" id="chatTitle">法义AI助手</div>
+                <div class="header-left">
+                    <button class="mobile-menu-btn" onclick="openSidebar()">☰</button>
+                    <button class="back-btn" onclick="backToWelcome()" id="backBtn" style="display: none;" title="返回主页">←</button>
+                    <div class="chat-title-main" id="chatTitle">法义AI助手</div>
+                </div>
                 <div class="header-actions">
                     <button class="header-btn" onclick="showDocumentGenerator()" title="生成文书">📄</button>
                     <button class="header-btn" onclick="showDocumentUpload()" title="上传审核">📤</button>
                     <button class="header-btn" onclick="showUserMenu()" title="用户中心">👤</button>
-                    <button class="header-btn" onclick="clearChat()" title="清空对话">🗑️</button>
-                    <button class="header-btn" onclick="exportChat()" title="导出对话">📤</button>
+                    <button class="header-btn" onclick="clearChat()" title="清空对话" id="clearChatBtn" style="display: none;">🗑️</button>
+                    <button class="header-btn" onclick="exportChat()" title="导出对话" id="exportChatBtn" style="display: none;">📤</button>
                 </div>
             </div>
             
@@ -943,10 +989,10 @@
                         <div class="feature-title">文书智能审核</div>
                         <div class="feature-desc">上传现有文书进行合规性检查和优化建议</div>
                     </div>
-                    <div class="feature-card" onclick="startChat('案例分析')">
-                        <div class="feature-icon">⚖️</div>
-                        <div class="feature-title">案例分析</div>
-                        <div class="feature-desc">专业的法律案例解析和风险评估</div>
+                    <div class="feature-card" onclick="goToLegalArticles()">
+                        <div class="feature-icon">📖</div>
+                        <div class="feature-title">法律条文查询</div>
+                        <div class="feature-desc">快速查找相关法律条文和司法解释</div>
                     </div>
                 </div>
             </div>
@@ -962,7 +1008,7 @@
                     <div class="quick-question" onclick="sendQuickQuestion('劳动合同试用期最长多久？')">劳动合同问题</div>
                     <div class="quick-question" onclick="sendQuickQuestion('离婚需要什么手续？')">离婚手续</div>
                     <div class="quick-question" onclick="sendQuickQuestion('交通事故如何处理？')">交通事故</div>
-                    <div class="quick-question" onclick="sendQuickQuestion('房屋租赁纠纷怎么办？')">租赁纠纷</div>
+                    <div class="quick-question" onclick="testApiConnection()" style="background: #ff6b6b; color: white;">测试API连接</div>
                 </div>
                 <div class="input-container">
                     <div class="input-wrapper">
@@ -984,7 +1030,8 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost:8001';
+        console.log('=== 法义AI助手 v2.1 - API端口已更新到8002 ===');
+        const API_BASE = 'http://localhost:8002';
         let currentUser = null;
         let currentChatId = null;
         let chats = [];
@@ -1062,6 +1109,11 @@
             document.getElementById('messagesContainer').style.display = 'flex';
             document.getElementById('inputArea').style.display = 'block';
             
+            // 显示返回按钮和聊天相关按钮
+            document.getElementById('backBtn').style.display = 'flex';
+            document.getElementById('clearChatBtn').style.display = 'block';
+            document.getElementById('exportChatBtn').style.display = 'block';
+            
             const chat = chats.find(c => c.id === chatId);
             if (chat) {
                 document.getElementById('chatTitle').textContent = chat.title;
@@ -1070,6 +1122,30 @@
             
             updateChatList();
             closeSidebar();
+        }
+        
+        // 返回欢迎界面
+        function backToWelcome() {
+            currentChatId = null;
+            document.getElementById('welcomeScreen').style.display = 'flex';
+            document.getElementById('messagesContainer').style.display = 'none';
+            document.getElementById('inputArea').style.display = 'none';
+            
+            // 隐藏法律条文查询界面
+            const legalInterface = document.getElementById('legalArticlesInterface');
+            if (legalInterface) {
+                legalInterface.style.display = 'none';
+            }
+            
+            // 隐藏返回按钮和聊天相关按钮
+            document.getElementById('backBtn').style.display = 'none';
+            document.getElementById('clearChatBtn').style.display = 'none';
+            document.getElementById('exportChatBtn').style.display = 'none';
+            
+            // 重置标题
+            document.getElementById('chatTitle').textContent = '法义AI助手';
+            
+            updateChatList();
         }
         
         // 开始聊天
@@ -1122,6 +1198,10 @@
             // 显示打字指示器
             showTypingIndicator();
             
+            console.log('=== 开始发送消息 ===');
+            console.log('消息内容:', message);
+            console.log('API地址:', `${API_BASE}/api/chat`);
+            
             try {
                 // 调用后端API
                 const response = await fetch(`${API_BASE}/api/chat`, {
@@ -1132,7 +1212,9 @@
                     body: JSON.stringify({ message })
                 });
                 
+                console.log('API响应状态:', response.status);
                 const data = await response.json();
+                console.log('API响应数据:', data);
                 hideTypingIndicator();
                 
                 if (data.success) {
@@ -1180,6 +1262,36 @@
         function sendQuickQuestion(question) {
             document.getElementById('messageInput').value = question;
             sendMessage();
+        }
+        
+        // 测试API连接
+        async function testApiConnection() {
+            console.log('=== 开始测试API连接 ===');
+            
+            try {
+                // 测试后端健康检查
+                const healthResponse = await fetch(`${API_BASE}/health`);
+                const healthData = await healthResponse.json();
+                console.log('健康检查成功:', healthData);
+                
+                // 测试聊天API
+                const chatResponse = await fetch(`${API_BASE}/api/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: '测试消息' })
+                });
+                
+                const chatData = await chatResponse.json();
+                console.log('聊天API测试成功:', chatData);
+                
+                alert(`API测试结果:\n后端连接: ✅\n聊天API: ✅\n响应: ${chatData.success ? '成功' : '失败'}\n相关条文: ${chatData.related_articles ? chatData.related_articles.length : 0} 条`);
+                
+            } catch (error) {
+                console.error('API测试失败:', error);
+                alert(`API测试结果:\n后端连接: ❌\n错误: ${error.message}`);
+            }
         }
         
         // 渲染消息
@@ -1580,6 +1692,298 @@
         // 文书上传功能（占位符）
         function showDocumentUpload() {
             alert('文书上传功能开发中，敬请期待！');
+        }
+        
+        // 法律条文查询功能
+        function goToLegalArticles() {
+            console.log('=== 跳转到法律条文查询 ===');
+            
+            // 隐藏欢迎界面和聊天界面
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('messagesContainer').style.display = 'none';
+            document.getElementById('inputArea').style.display = 'none';
+            
+            // 显示返回按钮
+            document.getElementById('backBtn').style.display = 'block';
+            document.getElementById('chatTitle').textContent = '法律条文查询';
+            
+            // 创建法律条文查询界面
+            createLegalArticlesInterface();
+        }
+        
+        // 创建法律条文查询界面
+        function createLegalArticlesInterface() {
+            const mainContent = document.querySelector('.main-content');
+            
+            // 检查是否已存在法律条文界面
+            let legalInterface = document.getElementById('legalArticlesInterface');
+            if (legalInterface) {
+                legalInterface.style.display = 'block';
+                return;
+            }
+            
+            // 创建法律条文查询界面HTML
+            const legalHTML = `
+                <div id="legalArticlesInterface" style="flex: 1; padding: 24px; overflow-y: auto; background: #f7f8fa;">
+                    <!-- 搜索区域 -->
+                    <div style="background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="text-align: center; margin-bottom: 24px;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; margin: 0 auto 16px;">📖</div>
+                            <h2 style="font-size: 24px; font-weight: 600; color: #1f2937; margin: 0 0 8px 0;">法律条文查询</h2>
+                            <p style="color: #6b7280; margin: 0;">快速查找相关法律条文和司法解释</p>
+                        </div>
+                        
+                        <div style="max-width: 600px; margin: 0 auto;">
+                            <div style="display: flex; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 24px; overflow: hidden; transition: border-color 0.3s;">
+                                <input 
+                                    type="text" 
+                                    id="legalSearchInput" 
+                                    placeholder="请输入法律条文关键词..." 
+                                    style="flex: 1; padding: 16px 24px; border: none; background: transparent; font-size: 16px; outline: none;"
+                                    onkeypress="if(event.key==='Enter') searchLegalArticles()"
+                                />
+                                <button 
+                                    onclick="searchLegalArticles()" 
+                                    style="width: 56px; height: 56px; background: #667eea; color: white; border: none; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; transition: background 0.3s;"
+                                    onmouseover="this.style.background='#5a6fd8'" 
+                                    onmouseout="this.style.background='#667eea'"
+                                >🔍</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 法律分类 -->
+                    <div style="background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">热门法律分类</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                            <div class="legal-category-card" onclick="searchByCategory('民法典')" style="display: flex; align-items: center; gap: 16px; padding: 20px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s;">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white;">📖</div>
+                                <div>
+                                    <div style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">民法典</div>
+                                    <div style="font-size: 14px; color: #6b7280;">1260条</div>
+                                </div>
+                            </div>
+                            <div class="legal-category-card" onclick="searchByCategory('劳动法')" style="display: flex; align-items: center; gap: 16px; padding: 20px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s;">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white;">💼</div>
+                                <div>
+                                    <div style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">劳动法</div>
+                                    <div style="font-size: 14px; color: #6b7280;">107条</div>
+                                </div>
+                            </div>
+                            <div class="legal-category-card" onclick="searchByCategory('刑法')" style="display: flex; align-items: center; gap: 16px; padding: 20px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s;">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white;">⚖️</div>
+                                <div>
+                                    <div style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">刑法</div>
+                                    <div style="font-size: 14px; color: #6b7280;">452条</div>
+                                </div>
+                            </div>
+                            <div class="legal-category-card" onclick="searchByCategory('行政法')" style="display: flex; align-items: center; gap: 16px; padding: 20px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s;">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white;">🏛️</div>
+                                <div>
+                                    <div style="font-size: 16px; font-weight: 600; margin-bottom: 4px;">行政法</div>
+                                    <div style="font-size: 14px; color: #6b7280;">328条</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 热门查询 -->
+                    <div style="background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">热门查询</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                            <div onclick="searchPopularQuery('试用期')" style="display: flex; align-items: center; gap: 16px; padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s;">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white;">💼</div>
+                                <div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 4px;">劳动合同试用期</div>
+                                    <div style="font-size: 14px; color: #6b7280;">试用期长度、工资、解除等规定</div>
+                                </div>
+                            </div>
+                            <div onclick="searchPopularQuery('离婚')" style="display: flex; align-items: center; gap: 16px; padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s;">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white;">💒</div>
+                                <div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 4px;">婚姻登记离婚</div>
+                                    <div style="font-size: 14px; color: #6b7280;">结婚、离婚的法定程序</div>
+                                </div>
+                            </div>
+                            <div onclick="searchPopularQuery('交通事故')" style="display: flex; align-items: center; gap: 16px; padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s;">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white;">🚗</div>
+                                <div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 4px;">交通事故处理</div>
+                                    <div style="font-size: 14px; color: #6b7280;">事故责任、赔偿标准</div>
+                                </div>
+                            </div>
+                            <div onclick="searchPopularQuery('房屋')" style="display: flex; align-items: center; gap: 16px; padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s;">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white;">🏠</div>
+                                <div>
+                                    <div style="font-size: 16px; font-weight: 600; color: #1f2937; margin-bottom: 4px;">房屋买卖租赁</div>
+                                    <div style="font-size: 14px; color: #6b7280;">房产交易、租赁合同</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 搜索结果区域 -->
+                    <div id="legalSearchResults" style="display: none;"></div>
+                </div>
+            `;
+            
+            // 在聊天头部后面插入法律条文界面
+            const chatHeader = document.querySelector('.chat-header');
+            chatHeader.insertAdjacentHTML('afterend', legalHTML);
+            
+            // 添加分类卡片悬停效果
+            addLegalCategoryHoverEffects();
+        }
+        
+        // 添加分类卡片悬停效果
+        function addLegalCategoryHoverEffects() {
+            const categoryCards = document.querySelectorAll('.legal-category-card');
+            categoryCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.background = '#f1f5f9';
+                    this.style.borderColor = '#cbd5e1';
+                    this.style.transform = 'translateY(-2px)';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.background = '#f8fafc';
+                    this.style.borderColor = '#e2e8f0';
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        }
+        
+        // 搜索法律条文
+        async function searchLegalArticles() {
+            const keyword = document.getElementById('legalSearchInput').value.trim();
+            if (!keyword) {
+                alert('请输入搜索关键词');
+                return;
+            }
+            
+            console.log('=== 开始搜索法律条文 ===');
+            console.log('搜索关键词:', keyword);
+            console.log('API地址:', `${API_BASE}/api/legal-articles/search`);
+            
+            showSearchLoading();
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/legal-articles/search`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ keyword: keyword })
+                });
+                
+                console.log('搜索API响应状态:', response.status);
+                const data = await response.json();
+                console.log('搜索API响应数据:', data);
+                
+                if (data.success) {
+                    console.log('搜索成功，找到条文:', data.data.articles.length);
+                    displaySearchResults(data.data.articles, data.data.total, keyword);
+                } else {
+                    console.error('搜索业务逻辑失败:', data.message);
+                    showSearchError('搜索失败：' + data.message);
+                }
+            } catch (error) {
+                console.error('搜索请求失败:', error);
+                showSearchError('搜索失败，请检查网络连接');
+            }
+        }
+        
+        // 按分类搜索
+        function searchByCategory(category) {
+            document.getElementById('legalSearchInput').value = category;
+            searchLegalArticles();
+        }
+        
+        // 热门查询搜索
+        function searchPopularQuery(keyword) {
+            document.getElementById('legalSearchInput').value = keyword;
+            searchLegalArticles();
+        }
+        
+        // 显示搜索加载状态
+        function showSearchLoading() {
+            const resultsDiv = document.getElementById('legalSearchResults');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = `
+                <div style="background: white; border-radius: 12px; padding: 60px 24px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.6;">🔍</div>
+                    <div style="font-size: 18px; color: #374151; margin-bottom: 8px;">正在搜索法律条文...</div>
+                    <div style="font-size: 14px; color: #6b7280;">请稍候</div>
+                </div>
+            `;
+        }
+        
+        // 显示搜索结果
+        function displaySearchResults(articles, total, keyword) {
+            const resultsDiv = document.getElementById('legalSearchResults');
+            
+            if (articles.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div style="background: white; border-radius: 12px; padding: 60px 24px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.6;">📖</div>
+                        <div style="font-size: 18px; color: #374151; margin-bottom: 8px;">未找到相关条文</div>
+                        <div style="font-size: 14px; color: #6b7280;">请尝试其他关键词或浏览分类</div>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <div style="background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0;">搜索结果</h3>
+                        <div style="font-size: 14px; color: #6b7280;">共找到 ${total} 条相关条文</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+            `;
+            
+            articles.forEach(article => {
+                html += `
+                    <div onclick="viewArticleDetail('${article.id}')" style="padding: 24px; background: white; border: 1px solid #e2e8f0; border-radius: 16px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#cbd5e1'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.1)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none'; this.style.transform='translateY(0)'">
+                        <div style="margin-bottom: 12px;">
+                            <div style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 8px;">${article.title}</div>
+                            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                <span style="font-size: 12px; color: #667eea; background: rgba(102, 126, 234, 0.1); padding: 4px 8px; border-radius: 8px;">${article.law_name}</span>
+                                <span style="font-size: 12px; color: #6b7280;">${article.chapter}</span>
+                            </div>
+                        </div>
+                        <div style="font-size: 14px; line-height: 1.6; color: #374151; margin-bottom: 12px;">${article.content}</div>
+                        <div style="text-align: right;">
+                            <span style="font-size: 12px; color: #9ca3af;">生效日期：${article.effective_date}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        // 显示搜索错误
+        function showSearchError(message) {
+            const resultsDiv = document.getElementById('legalSearchResults');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = `
+                <div style="background: white; border-radius: 12px; padding: 60px 24px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.6;">❌</div>
+                    <div style="font-size: 18px; color: #374151; margin-bottom: 8px;">搜索失败</div>
+                    <div style="font-size: 14px; color: #6b7280;">${message}</div>
+                </div>
+            `;
+        }
+        
+        // 查看条文详情
+        function viewArticleDetail(articleId) {
+            // 这里可以实现条文详情查看功能
+            alert('条文详情功能开发中，敬请期待！');
         }
         
         // 个人中心功能（占位符）
