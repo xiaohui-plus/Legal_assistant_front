@@ -1,0 +1,274 @@
+/* 通用样式文件 */
+
+/* 重置样式 */
+* {
+	box-sizing: border-box;
+}
+
+/* 清除默认样式 */
+view, text, image, button, input, textarea {
+	margin: 0;
+	padding: 0;
+	border: none;
+	outline: none;
+}
+
+/* 通用动画 */
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+		transform: translateY(20rpx);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes slideIn {
+	from {
+		transform: translateX(-100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+@keyframes bounce {
+	0%, 20%, 53%, 80%, 100% {
+		transform: translate3d(0, 0, 0);
+	}
+	40%, 43% {
+		transform: translate3d(0, -6rpx, 0);
+	}
+	70% {
+		transform: translate3d(0, -3rpx, 0);
+	}
+	90% {
+		transform: translate3d(0, -1rpx, 0);
+	}
+}
+
+/* 动画类 */
+.fade-in {
+	animation: fadeIn 0.3s ease-out;
+}
+
+.slide-in {
+	animation: slideIn 0.3s ease-out;
+}
+
+.bounce {
+	animation: bounce 0.6s ease-out;
+}
+
+/* 加载动画 */
+.loading-dots {
+	display: inline-block;
+	
+	&::after {
+		content: '';
+		animation: loading-dots 1.5s infinite;
+	}
+}
+
+@keyframes loading-dots {
+	0%, 20% {
+		content: '';
+	}
+	40% {
+		content: '.';
+	}
+	60% {
+		content: '..';
+	}
+	80%, 100% {
+		content: '...';
+	}
+}
+
+/* 打字机效果 */
+.typewriter {
+	overflow: hidden;
+	border-right: 2rpx solid;
+	white-space: nowrap;
+	animation: typing 2s steps(40, end), blink-caret 0.75s step-end infinite;
+}
+
+@keyframes typing {
+	from {
+		width: 0;
+	}
+	to {
+		width: 100%;
+	}
+}
+
+@keyframes blink-caret {
+	from, to {
+		border-color: transparent;
+	}
+	50% {
+		border-color: var(--primary-color);
+	}
+}
+
+/* 渐变背景 */
+.gradient-bg {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.gradient-text {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+/* 毛玻璃效果 */
+.glass {
+	background: rgba(255, 255, 255, 0.25);
+	backdrop-filter: blur(20rpx);
+	border: 2rpx solid rgba(255, 255, 255, 0.18);
+}
+
+/* 悬浮效果 */
+.hover-lift {
+	transition: transform 0.3s ease, box-shadow 0.3s ease;
+	
+	&:active {
+		transform: translateY(-4rpx);
+		box-shadow: 0 8rpx 24rpx rgba(0, 0, 0, 0.15);
+	}
+}
+
+/* 脉冲效果 */
+.pulse {
+	animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+	0% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.05);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+/* 旋转加载 */
+.spin {
+	animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+/* 响应式字体 */
+.text-xs { font-size: 24rpx; }
+.text-sm { font-size: 28rpx; }
+.text-base { font-size: 32rpx; }
+.text-lg { font-size: 36rpx; }
+.text-xl { font-size: 40rpx; }
+.text-2xl { font-size: 48rpx; }
+.text-3xl { font-size: 56rpx; }
+
+/* 字体粗细 */
+.font-light { font-weight: 300; }
+.font-normal { font-weight: 400; }
+.font-medium { font-weight: 500; }
+.font-semibold { font-weight: 600; }
+.font-bold { font-weight: 700; }
+
+/* 行高 */
+.leading-tight { line-height: 1.25; }
+.leading-normal { line-height: 1.5; }
+.leading-relaxed { line-height: 1.75; }
+
+/* 透明度 */
+.opacity-0 { opacity: 0; }
+.opacity-25 { opacity: 0.25; }
+.opacity-50 { opacity: 0.5; }
+.opacity-75 { opacity: 0.75; }
+.opacity-100 { opacity: 1; }
+
+/* 隐藏/显示 */
+.hidden { display: none !important; }
+.visible { visibility: visible; }
+.invisible { visibility: hidden; }
+
+/* 溢出处理 */
+.overflow-hidden { overflow: hidden; }
+.overflow-scroll { overflow: scroll; }
+.overflow-auto { overflow: auto; }
+
+/* 文本溢出 */
+.truncate {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.line-clamp-2 {
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.line-clamp-3 {
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+/* 定位 */
+.relative { position: relative; }
+.absolute { position: absolute; }
+.fixed { position: fixed; }
+.sticky { position: sticky; }
+
+/* z-index */
+.z-0 { z-index: 0; }
+.z-10 { z-index: 10; }
+.z-20 { z-index: 20; }
+.z-30 { z-index: 30; }
+.z-40 { z-index: 40; }
+.z-50 { z-index: 50; }
+
+/* 宽高 */
+.w-full { width: 100%; }
+.h-full { height: 100%; }
+.w-screen { width: 100vw; }
+.h-screen { height: 100vh; }
+
+/* 最小宽高 */
+.min-h-screen { min-height: 100vh; }
+.min-w-0 { min-width: 0; }
+
+/* 最大宽高 */
+.max-w-full { max-width: 100%; }
+.max-h-full { max-height: 100%; }
+
+/* 边框 */
+.border { border: 2rpx solid var(--border-color); }
+.border-t { border-top: 2rpx solid var(--border-color); }
+.border-b { border-bottom: 2rpx solid var(--border-color); }
+.border-l { border-left: 2rpx solid var(--border-color); }
+.border-r { border-right: 2rpx solid var(--border-color); }
+
+/* 边框颜色 */
+.border-primary { border-color: var(--primary-color); }
+.border-success { border-color: var(--success-color); }
+.border-warning { border-color: var(--warning-color); }
+.border-error { border-color: var(--error-color); }
