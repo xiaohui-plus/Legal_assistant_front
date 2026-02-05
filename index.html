@@ -1684,9 +1684,334 @@
             }
         }
         
-        // 文书生成功能（占位符）
+        // 文书生成功能
         function showDocumentGenerator() {
-            alert('文书生成功能开发中，敬请期待！');
+            console.log('=== 显示文书生成界面 ===');
+            
+            // 隐藏其他界面
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('messagesContainer').style.display = 'none';
+            document.getElementById('inputArea').style.display = 'none';
+            
+            // 隐藏法律条文查询界面
+            const legalInterface = document.getElementById('legalArticlesInterface');
+            if (legalInterface) {
+                legalInterface.style.display = 'none';
+            }
+            
+            // 显示返回按钮
+            document.getElementById('backBtn').style.display = 'block';
+            document.getElementById('chatTitle').textContent = '法律文书生成';
+            
+            // 创建文书生成界面
+            createDocumentGeneratorInterface();
+        }
+        
+        // 创建文书生成界面
+        function createDocumentGeneratorInterface() {
+            const mainContent = document.querySelector('.main-content');
+            
+            // 检查是否已存在文书生成界面
+            let docInterface = document.getElementById('documentGeneratorInterface');
+            if (docInterface) {
+                docInterface.style.display = 'block';
+                return;
+            }
+            
+            // 创建文书生成界面HTML
+            const docHTML = `
+                <div id="documentGeneratorInterface" style="flex: 1; padding: 24px; overflow-y: auto; background: #f7f8fa;">
+                    <!-- 头部 -->
+                    <div style="background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="text-align: center; margin-bottom: 24px;">
+                            <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; margin: 0 auto 16px;">📄</div>
+                            <h2 style="font-size: 24px; font-weight: 600; color: #1f2937; margin: 0 0 8px 0;">法律文书生成</h2>
+                            <p style="color: #6b7280; margin: 0;">智能生成各类法律文书，支持合规性检查</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 模板选择 -->
+                    <div style="background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">选择文书模板</h3>
+                        <div id="templateList" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+                            <!-- 模板列表将在这里动态生成 -->
+                        </div>
+                    </div>
+                    
+                    <!-- 表单填写区域 -->
+                    <div id="documentForm" style="display: none; background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+                            <h3 id="formTitle" style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0;">填写文书信息</h3>
+                            <button onclick="backToTemplateSelection()" style="padding: 8px 16px; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 8px; color: #374151; cursor: pointer;">返回选择</button>
+                        </div>
+                        <form id="documentFormFields" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                            <!-- 表单字段将在这里动态生成 -->
+                        </form>
+                        <div style="margin-top: 24px; text-align: center;">
+                            <button onclick="generateDocument()" id="generateBtn" style="padding: 12px 32px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                                生成文书
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 生成结果 -->
+                    <div id="documentResult" style="display: none; background: white; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <h3 style="font-size: 20px; font-weight: 600; color: #1f2937; margin: 0 0 16px 0;">生成结果</h3>
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 16px; max-height: 400px; overflow-y: auto;">
+                            <pre id="documentContent" style="white-space: pre-wrap; font-family: 'Microsoft YaHei', sans-serif; line-height: 1.6; margin: 0;"></pre>
+                        </div>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <button onclick="copyDocumentContent()" style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 6px; cursor: pointer;">📋 复制内容</button>
+                            <button onclick="downloadDocument('txt')" style="padding: 8px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">📄 下载TXT</button>
+                            <button onclick="downloadDocument('docx')" style="padding: 8px 16px; background: #8b5cf6; color: white; border: none; border-radius: 6px; cursor: pointer;">📄 下载DOCX</button>
+                            <button onclick="downloadDocument('pdf')" style="padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer;">📄 下载PDF</button>
+                            <button onclick="generateNewDocument()" style="padding: 8px 16px; background: #f59e0b; color: white; border: none; border-radius: 6px; cursor: pointer;">🔄 生成新文书</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 在聊天头部后面插入文书生成界面
+            const chatHeader = document.querySelector('.chat-header');
+            chatHeader.insertAdjacentHTML('afterend', docHTML);
+            
+            // 加载模板列表
+            loadDocumentTemplates();
+        }
+        
+        // 加载文书模板列表
+        async function loadDocumentTemplates() {
+            try {
+                const response = await fetch(`${API_BASE}/api/documents/templates`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayTemplates(data.data);
+                } else {
+                    console.error('加载模板失败:', data.message);
+                    document.getElementById('templateList').innerHTML = '<p style="text-align: center; color: #ef4444;">加载模板失败</p>';
+                }
+            } catch (error) {
+                console.error('加载模板失败:', error);
+                document.getElementById('templateList').innerHTML = '<p style="text-align: center; color: #ef4444;">网络错误，请检查后端服务</p>';
+            }
+        }
+        
+        // 显示模板列表
+        function displayTemplates(templates) {
+            const templateList = document.getElementById('templateList');
+            let html = '';
+            
+            templates.forEach(template => {
+                html += `
+                    <div onclick="selectTemplate(${template.id})" style="padding: 20px; background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#667eea'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#e2e8f0'; this.style.transform='translateY(0)'">
+                        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                            <div style="font-size: 24px;">${template.icon}</div>
+                            <div>
+                                <div style="font-size: 16px; font-weight: 600; color: #1f2937;">${template.name}</div>
+                                <div style="font-size: 12px; color: #667eea; background: rgba(102, 126, 234, 0.1); padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 4px;">${template.category}</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 14px; color: #6b7280; line-height: 1.4;">${template.description}</div>
+                        <div style="margin-top: 12px; font-size: 12px; color: #9ca3af;">包含 ${template.fields.length} 个字段</div>
+                    </div>
+                `;
+            });
+            
+            templateList.innerHTML = html;
+        }
+        
+        let currentTemplate = null;
+        let generatedDocument = null;
+        
+        // 选择模板
+        async function selectTemplate(templateId) {
+            try {
+                const response = await fetch(`${API_BASE}/api/documents/templates`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentTemplate = data.data.find(t => t.id === templateId);
+                    if (currentTemplate) {
+                        showDocumentForm(currentTemplate);
+                    }
+                }
+            } catch (error) {
+                console.error('获取模板详情失败:', error);
+                alert('获取模板详情失败，请重试');
+            }
+        }
+        
+        // 显示文书表单
+        function showDocumentForm(template) {
+            document.getElementById('formTitle').textContent = `填写${template.name}信息`;
+            
+            const formFields = document.getElementById('documentFormFields');
+            let html = '';
+            
+            template.fields.forEach(field => {
+                html += `
+                    <div style="display: flex; flex-direction: column;">
+                        <label style="font-size: 14px; font-weight: 500; color: #374151; margin-bottom: 6px;">
+                            ${field.label}
+                            ${field.required ? '<span style="color: #ef4444;">*</span>' : ''}
+                        </label>
+                `;
+                
+                if (field.type === 'text' || field.type === 'number' || field.type === 'date') {
+                    html += `
+                        <input 
+                            type="${field.type}" 
+                            name="${field.name}" 
+                            placeholder="${field.placeholder || ''}"
+                            ${field.required ? 'required' : ''}
+                            ${field.min !== undefined ? `min="${field.min}"` : ''}
+                            ${field.max !== undefined ? `max="${field.max}"` : ''}
+                            style="padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; transition: border-color 0.2s;"
+                            onfocus="this.style.borderColor='#667eea'"
+                            onblur="this.style.borderColor='#d1d5db'"
+                        />
+                    `;
+                } else if (field.type === 'select') {
+                    html += `<select name="${field.name}" ${field.required ? 'required' : ''} style="padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">`;
+                    html += `<option value="">请选择${field.label}</option>`;
+                    field.options.forEach(option => {
+                        html += `<option value="${option}">${option}</option>`;
+                    });
+                    html += `</select>`;
+                } else if (field.type === 'textarea') {
+                    html += `
+                        <textarea 
+                            name="${field.name}" 
+                            placeholder="${field.placeholder || ''}"
+                            ${field.required ? 'required' : ''}
+                            rows="3"
+                            style="padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; resize: vertical; transition: border-color 0.2s;"
+                            onfocus="this.style.borderColor='#667eea'"
+                            onblur="this.style.borderColor='#d1d5db'"
+                        ></textarea>
+                    `;
+                }
+                
+                html += `</div>`;
+            });
+            
+            formFields.innerHTML = html;
+            
+            // 显示表单，隐藏模板选择
+            document.getElementById('templateList').parentElement.style.display = 'none';
+            document.getElementById('documentForm').style.display = 'block';
+        }
+        
+        // 返回模板选择
+        function backToTemplateSelection() {
+            document.getElementById('documentForm').style.display = 'none';
+            document.getElementById('documentResult').style.display = 'none';
+            document.getElementById('templateList').parentElement.style.display = 'block';
+            currentTemplate = null;
+            generatedDocument = null;
+        }
+        
+        // 生成文书
+        async function generateDocument() {
+            if (!currentTemplate) {
+                alert('请先选择模板');
+                return;
+            }
+            
+            const form = document.getElementById('documentFormFields');
+            const formData = new FormData(form);
+            const data = {};
+            
+            // 收集表单数据
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            
+            // 验证必填字段
+            const requiredFields = currentTemplate.fields.filter(f => f.required);
+            for (let field of requiredFields) {
+                if (!data[field.name] || data[field.name].trim() === '') {
+                    alert(`请填写${field.label}`);
+                    return;
+                }
+            }
+            
+            // 显示生成中状态
+            const generateBtn = document.getElementById('generateBtn');
+            const originalText = generateBtn.textContent;
+            generateBtn.textContent = '生成中...';
+            generateBtn.disabled = true;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/documents/generate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        template_id: currentTemplate.id,
+                        form_data: data,
+                        format: 'docx'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    generatedDocument = result.data;
+                    showDocumentResult(result.data);
+                } else {
+                    alert('生成失败: ' + result.message);
+                }
+            } catch (error) {
+                console.error('生成文书失败:', error);
+                alert('生成失败，请检查网络连接');
+            } finally {
+                generateBtn.textContent = originalText;
+                generateBtn.disabled = false;
+            }
+        }
+        
+        // 显示生成结果
+        function showDocumentResult(document) {
+            document.getElementById('documentContent').textContent = document.content;
+            document.getElementById('documentForm').style.display = 'none';
+            document.getElementById('documentResult').style.display = 'block';
+        }
+        
+        // 复制文书内容
+        function copyDocumentContent() {
+            const content = document.getElementById('documentContent').textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                alert('内容已复制到剪贴板');
+            }).catch(err => {
+                console.error('复制失败:', err);
+                alert('复制失败，请手动选择复制');
+            });
+        }
+        
+        // 下载文书
+        function downloadDocument(format) {
+            if (!generatedDocument) {
+                alert('请先生成文书');
+                return;
+            }
+            
+            const downloadUrl = `${API_BASE}/api/documents/${generatedDocument.id}/download?format=${format}`;
+            
+            // 创建隐藏的下载链接
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = `${currentTemplate.name}_${new Date().toISOString().slice(0, 10)}.${format}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // 生成新文书
+        function generateNewDocument() {
+            backToTemplateSelection();
         }
         
         // 文书上传功能（占位符）
