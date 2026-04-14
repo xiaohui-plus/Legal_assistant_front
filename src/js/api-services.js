@@ -3,7 +3,7 @@
 // API服务�?
 class APIService {
     constructor() {
-        this.baseURL = window.API_BASE_URL || 'http://localhost:8001';
+        this.baseURL = window.API_BASE_URL || 'http://154.89.153.127:8001';
     }
 
     // 获取Token
@@ -98,3 +98,4 @@ class APIService {
 
 // 创建全局API服务实例
 const apiService = new APIService();
+
