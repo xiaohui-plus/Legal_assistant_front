@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>证据链闭环管理 - 法律AI助手</title>
+
+    <!-- 全局样式 -->
+    <link rel="stylesheet" href="../css/global-styles.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="../css/evidence-chain.css">
+
+    <!-- 核心脚本 - 统一API客户端 -->
+    <script src="../js/api-client.js"></script>
+    <script src="../js/api-services.js"></script>
+    <script src="../js/ui-components.js"></script>
+</head>
+
+<body>
+    <div class="evidence-chain-container">
+        <!-- 顶部导航 -->
+        <div class="chain-header">
+            <div class="header-left">
+                <h1>🔗 证据链闭环管理</h1>
+                <div class="case-info">
+                    <span class="case-id" id="caseId">案件ID: -</span>
+                    <span class="case-title" id="caseTitle">案件名称: -</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-primary" onclick="showUploadModal()">
+                    <span>📤</span> 上传证据
+                </button>
+                <button class="btn-secondary" onclick="buildChain()">
+                    <span>🔍</span> 构建证据链
+                </button>
+                <button class="btn-secondary" onclick="exportDocuments()">
+                    <span>📄</span> 导出文档
+                </button>
+            </div>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="chain-stats">
+            <div class="stat-card">
+                <div class="stat-icon">📁</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="evidenceCount">0</div>
+                    <div class="stat-label">证据总数</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="nodeCount">0</div>
+                    <div class="stat-label">时序节点</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="completeness">0%</div>
+                    <div class="stat-label">完整性</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">⭐</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="winProbability">0%</div>
+                    <div class="stat-label">胜诉概率</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 左侧：证据列表 -->
+            <div class="evidence-panel">
+                <div class="panel-header">
+                    <h3>📋 证据列表</h3>
+                    <button class="btn-small" onclick="batchAnalyze()">批量分析</button>
+                </div>
+                <div class="evidence-list" id="evidenceList">
+                    <div class="empty-state">
+                        <p>暂无证据</p>
+                        <button onclick="showUploadModal()">上传第一个证据</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧：可视化区域 -->
+            <div class="visualization-panel">
+                <!-- Tab切换 -->
+                <div class="tab-nav">
+                    <button class="tab-btn active" onclick="switchTab('timeline')">时序图</button>
+                    <button class="tab-btn" onclick="switchTab('radar')">胜诉分析</button>
+                    <button class="tab-btn" onclick="switchTab('completeness')">完整性</button>
+                </div>
+
+                <!-- 时序图 -->
+                <div class="tab-content active" id="timelineTab">
+                    <div class="chart-container">
+                        <div id="timelineChart" style="width: 100%; height: 400px;"></div>
+                    </div>
+                </div>
+
+                <!-- 胜诉概率雷达图 -->
+                <div class="tab-content" id="radarTab">
+                    <div class="chart-container">
+                        <div id="radarChart" style="width: 100%; height: 400px;"></div>
+                    </div>
+                    <div class="win-probability-info" id="winProbabilityInfo"></div>
+                </div>
+
+                <!-- 完整性分析 -->
+                <div class="tab-content" id="completenessTab">
+                    <div class="completeness-analysis" id="completenessAnalysis">
+                        <div class="empty-state">
+                            <p>请先构建证据链</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 薄弱环节与建议 -->
+        <div class="suggestions-panel">
+            <div class="panel-header">
+                <h3>💡 证据链分析与建议</h3>
+            </div>
+            <div class="suggestions-content">
+                <div class="weak-points" id="weakPoints"></div>
+                <div class="suggestions" id="suggestions"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 上传证据模态框 -->
+    <div class="modal" id="uploadModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>上传证据</h3>
+                <button class="close-btn" onclick="closeUploadModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="uploadForm">
+                    <div class="form-group">
+                        <label>案件ID *</label>
+                        <input type="text" id="uploadCaseId" required placeholder="例如: case_123">
+                    </div>
+                    <div class="form-group">
+                        <label>案件标题 *</label>
+                        <input type="text" id="uploadCaseTitle" required placeholder="例如: 劳动纠纷案">
+                    </div>
+                    <div class="form-group">
+                        <label>选择文件 *</label>
+                        <input type="file" id="uploadFiles" multiple accept="image/*,.pdf,.doc,.docx" required>
+                        <small>支持图片、PDF、Word文档，可多选</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="closeUploadModal()">取消</button>
+                        <button type="submit" class="btn-primary">上传</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 证据详情侧边栏 -->
+    <div class="evidence-sidebar" id="evidenceSidebar" style="display: none;">
+        <div class="sidebar-header">
+            <h3>证据详情</h3>
+            <button class="close-btn" onclick="closeSidebar()">×</button>
+        </div>
+        <div class="sidebar-content" id="sidebarContent"></div>
+    </div>
+
+    <!-- 加载提示 -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p id="loadingText">处理中...</p>
+    </div>
+
+    <script src="../js/evidence-chain.js"></script>
+</body>
+
+</html>

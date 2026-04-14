@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文书智能审查 - 法智AI助手</title>
+    <link rel="stylesheet" href="../css/global-styles.css">
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- 顶部导航 -->
+    <div class="header">
+        <div class="header-left">
+            <a href="professional.html" class="back-btn">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <div class="logo">
+                <img src="../images/logo.png" alt="文书智能审查系统" class="logo-image">
+                <span>文书智能审查系统</span>
+            </div>
+            <div class="navbar-menu">
+                <div class="navbar-menu-item" onclick="goToHome()" data-tooltip="首页">
+                    <img src="../images/首页.svg" alt="首页" class="menu-icon">
+                </div>
+                <div class="navbar-menu-item" onclick="goToChat()" data-tooltip="智能咨询">
+                    <img src="../images/业务咨询.svg" alt="智能咨询" class="menu-icon chat-icon">
+                </div>
+                <div class="navbar-menu-item" onclick="goToLawSearch()" data-tooltip="法律查询">
+                    <img src="../images/查询.svg" alt="法律查询" class="menu-icon">
+                </div>
+                <div class="navbar-menu-item" onclick="goToDocGen()" data-tooltip="文书生成">
+                    <img src="../images/文书生成.svg" alt="文书生成" class="menu-icon">
+                </div>
+                <div class="navbar-menu-item active" onclick="goToDocReview()" data-tooltip="文书审查">
+                    <img src="../images/文件-文书审查.svg" alt="文书审查" class="menu-icon">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主容器 -->
+    <div class="container">
+        <!-- 左侧功能区 -->
+        <div class="sidebar">
+            <!-- 文件上传区 -->
+            <div class="section">
+                <div class="section-title">文件上传</div>
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="fileInput" accept=".docx,.doc,.pdf,.txt,.xlsx,.pptx" class="file-input-overlay">
+                    <div class="icon"><i class="fa-solid fa-cloud-upload-alt"></i></div>
+                    <div class="text">点击或拖拽文件至此处上传</div>
+                    <div class="tip">支持格式：docx / doc / pdf / txt / xlsx / pptx（单个文件≤20MB）</div>
+                </div>
+                <div id="fileInfo" style="display: none; margin-bottom: 15px;">
+                    <div class="file-info-card">
+                        <span id="fileName"></span>
+                        <button class="clear-btn" onclick="clearFile()">
+                            <i class="fa-solid fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 审查配置 -->
+            <div class="section">
+                <div class="section-title">审查配置</div>
+                <div class="config-item">
+                    <label for="templateSelect">审查模板</label>
+                    <select id="templateSelect" class="form-select">
+                        <option value="default">通用合同模板</option>
+                        <option value="rental">租赁合同模板</option>
+                        <option value="labor">劳动合同模板</option>
+                        <option value="divorce">离婚协议模板</option>
+                        <option value="will">遗嘱模板</option>
+                        <option value="custom">自定义规则</option>
+                    </select>
+                    <div class="hint">
+                        <i class="fa-solid fa-info-circle"></i>
+                        <span>选择文书类型，AI将针对性分析该类型文件的特定问题</span>
+                    </div>
+                </div>
+                
+                <!-- 自定义规则输入框 -->
+                <div id="customRuleInput" class="config-item" style="display: none;">
+                    <label for="customRuleText">自定义审查规则</label>
+                    <textarea id="customRuleText" class="form-textarea" placeholder="请输入自定义的审查提示词，例如：重点关注合同中的付款条款和违约责任..." rows="4"></textarea>
+                    <div class="hint">
+                        <i class="fa-solid fa-lightbulb"></i>
+                        <span>输入自定义提示词，指导AI按照您的要求进行审查</span>
+                    </div>
+                </div>
+                <div class="config-item">
+                    <label>审查维度</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" checked> 合规性</label>
+                        <label><input type="checkbox" checked> 格式规范</label>
+                        <label><input type="checkbox" checked> 错别字</label>
+                        <label><input type="checkbox" checked> 风险条款</label>
+                        <label><input type="checkbox"> 语义重复</label>
+                    </div>
+                </div>
+                <div class="config-item">
+                    <label for="sensitivityLevel">敏感级别</label>
+                    <select id="sensitivityLevel" class="form-select">
+                        <option value="high">高（严格审查）</option>
+                        <option value="medium" selected>中（平衡审查）</option>
+                        <option value="low">低（宽松审查）</option>
+                    </select>
+                </div>
+                <button class="review-btn" id="reviewBtn" disabled>
+                    <i class="fa-solid fa-search"></i> 开始智能审查
+                </button>
+            </div>
+        </div>
+
+        <!-- 右侧内容区 -->
+        <div class="content">
+            <!-- 审查结果概览 -->
+            <div class="result-overview" id="resultOverview" style="display: none;">
+                <div class="stat-container">
+                    <div class="stat-item">
+                        <div class="num" id="totalIssues">0</div>
+                        <div class="label">发现问题总数</div>
+                    </div>
+                    <div class="risk-level">
+                        <div class="level">
+                            <span class="dot high"></span>
+                            高风险：<span id="highCount">0</span>
+                        </div>
+                        <div class="level">
+                            <span class="dot medium"></span>
+                            中风险：<span id="mediumCount">0</span>
+                        </div>
+                        <div class="level">
+                            <span class="dot low"></span>
+                            低风险：<span id="lowCount">0</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn review-again-btn" onclick="reviewAgain()">
+                    <i class="fa-solid fa-redo"></i> 重新审查
+                </button>
+            </div>
+
+            <!-- 结果详情与文书预览 -->
+            <div class="result-detail" id="resultDetail">
+                <!-- 问题列表 -->
+                <div class="issue-list" id="issueList">
+                    <div class="filter">
+                        <button class="filter-btn active" data-filter="all">全部</button>
+                        <button class="filter-btn" data-filter="high">高风险</button>
+                        <button class="filter-btn" data-filter="medium">中风险</button>
+                        <button class="filter-btn" data-filter="low">低风险</button>
+                    </div>
+                    <div id="issueListContent">
+                        <div class="empty-state">
+                            <div class="icon"><i class="fa-solid fa-file-circle-question"></i></div>
+                            <div>请上传文件并点击「开始智能审查」</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 可拖动的分隔线 -->
+                <div class="resizer" id="resizer"></div>
+
+                <!-- 文书预览 -->
+                <div class="document-preview" id="documentPreview">
+                    <div id="documentPreviewContent">
+                        <div class="empty-state">
+                            <div class="icon"><i class="fa-solid fa-file-alt"></i></div>
+                            <div>暂无文书预览，请先上传文件</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/api-client.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* 顶部导航 */
+        .header {
+            background: white;
+            color: #374151;
+            padding: 0 32px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .navbar-menu {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .navbar-menu-item {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: transparent;
+            position: relative;
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            transition: all 0.3s;
+        }
+
+        .menu-icon.chat-icon {
+            width: 32px;
+            height: 32px;
+        }
+
+        .navbar-menu-item:hover .menu-icon {
+            transform: scale(1.1);
+        }
+
+        .navbar-menu-item.active .menu-icon {
+            filter: brightness(0) saturate(100%) invert(38%) sepia(95%) saturate(3374%) hue-rotate(212deg) brightness(94%) contrast(87%);
+        }
+
+        .navbar-menu-item:hover {
+            background: #f1f5f9;
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        .navbar-menu-item.active {
+            background: #f1f5f9;
+            color: #3b82f6;
+        }
+
+        /* 图标悬停提示 */
+        .navbar-menu-item::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: -35px;
+            left: 50%;
+            transform: translateX(-50%) scale(0.9);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .navbar-menu-item:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+
+        .back-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            color: #1f2937;
+            cursor: pointer;
+            font-size: 24px;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .back-btn:hover {
+            color: #3b82f6;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #1f2937;
+        }
+        
+        .logo-image {
+            width: 32px;
+            height: 32px;
+            vertical-align: middle;
+            object-fit: contain;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: white;
+        }
+
+        .user-info .btn {
+            background-color: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .user-info .btn:hover {
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 20px;
+        }
+
+        /* 左侧功能区 */
+        .sidebar {
+            background-color: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            height: fit-content;
+            position: sticky;
+            top: 84px;
+        }
+
+        .section {
+            margin-bottom: 28px;
+        }
+
+        .section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1e40af;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        /* 文件上传区 */
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            padding: 32px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8fafc;
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            pointer-events: auto;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .file-input-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .upload-area:hover {
+            border-color: #1e40af;
+            background: #eff6ff;
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.1);
+        }
+        
+        .upload-area.drag-over {
+            border-color: #1e40af;
+            background: #dbeafe;
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.2);
+            border-style: solid;
+        }
+
+        .upload-area .icon {
+            font-size: 48px;
+            color: #64748b;
+            margin-bottom: 12px;
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+
+        .upload-area .text {
+            color: #475569;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+
+        .upload-area .tip {
+            color: #94a3b8;
+            font-size: 12px;
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+        
+        .upload-area:hover .icon,
+        .upload-area.drag-over .icon {
+            color: #1e40af;
+            transform: scale(1.05);
+        }
+        
+        .upload-area:hover .text,
+        .upload-area.drag-over .text {
+            color: #1e40af;
+        }
+
+        .file-info-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #1e40af;
+        }
+        
+        .file-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        
+        .file-icon-text {
+            font-size: 20px;
+            margin-right: 8px;
+            color: #1e40af;
+            vertical-align: middle;
+        }
+
+        .clear-btn {
+            border: none;
+            background: none;
+            color: #64748b;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px;
+            transition: color 0.2s;
+        }
+
+        .clear-btn:hover {
+            color: #ef4444;
+        }
+
+        /* 审查配置 */
+        .config-item {
+            margin-bottom: 16px;
+        }
+
+        .config-item label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        
+        .hint {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 6px;
+            padding: 8px 12px;
+            background: #f8fafc;
+            border-radius: 6px;
+            border-left: 3px solid #3b82f6;
+        }
+        
+        .hint i {
+            color: #3b82f6;
+            font-size: 14px;
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.2s;
+            background: white;
+        }
+        
+        .form-textarea:focus {
+            outline: none;
+            border-color: #1e40af;
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: #1e40af;
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            cursor: pointer;
+        }
+
+        /* 审查按钮 */
+        .review-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            color: white;
+            border: none;
+            padding: 12px 0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 8px;
+        }
+
+        .review-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+        }
+
+        .review-btn:disabled {
+            background: #d1d5db;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 右侧内容区 */
+        .content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* 审查结果概览 */
+        .result-overview {
+            background-color: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .stat-container {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-item .num {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 6px;
+        }
+
+        .stat-item .label {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .risk-level {
+            display: flex;
+            gap: 20px;
+        }
+
+        .risk-level .level {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        .risk-level .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .risk-level .high {
+            background-color: #ef4444;
+        }
+
+        .risk-level .medium {
+            background-color: #f59e0b;
+        }
+
+        .risk-level .low {
+            background-color: #10b981;
+        }
+
+        /* 结果操作区 - 重新审查按钮 */
+        .review-again-btn {
+            padding: 10px 24px !important;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%) !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 8px !important;
+            font-size: 15px !important;
+            font-weight: 600 !important;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .review-again-btn:hover {
+            background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+        }
+
+        /* 结果详情与文书预览 */
+        .result-detail {
+            display: flex;
+            gap: 0;
+            min-height: calc(100vh - 280px);
+            position: relative;
+        }
+
+        /* 可拖动的分隔线 */
+        .resizer {
+            width: 4px;
+            background: #e5e7eb;
+            cursor: col-resize;
+            position: relative;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .resizer:hover {
+            background: #1e40af;
+        }
+
+        .resizer::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 40px;
+            background: transparent;
+        }
+
+        .resizer:active {
+            background: #1e3a8a;
+        }
+
+        /* 问题列表 */
+        .issue-list {
+            background-color: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            overflow-y: auto;
+            max-height: calc(100vh - 280px);
+            min-width: 280px;
+            width: 380px;
+            flex-shrink: 0;
+        }
+
+        .filter {
+            margin-bottom: 16px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid #e5e7eb;
+            background-color: white;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            color: #64748b;
+        }
+
+        .filter-btn:hover {
+            border-color: #cbd5e1;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            color: white;
+            border-color: #1e40af;
+        }
+
+        .issue-item {
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid #f59e0b;
+            background-color: #fafafa;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .issue-item:hover {
+            background-color: #f1f5f9;
+            transform: translateX(4px);
+        }
+
+        .issue-item.high {
+            border-left-color: #ef4444;
+        }
+
+        .issue-item.medium {
+            border-left-color: #f59e0b;
+        }
+
+        .issue-item.low {
+            border-left-color: #10b981;
+        }
+
+        .issue-item .title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            color: #1f2937;
+        }
+
+        .issue-item .type {
+            font-size: 11px;
+            color: #f59e0b;
+            background-color: rgba(245, 158, 11, 0.1);
+            padding: 3px 8px;
+            border-radius: 12px;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .issue-item.high .type {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .issue-item.low .type {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .issue-item .desc {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .issue-item .suggestion {
+            font-size: 13px;
+            color: #1e40af;
+            background-color: rgba(30, 64, 175, 0.05);
+            padding: 10px;
+            border-radius: 6px;
+            line-height: 1.5;
+        }
+
+        /* 文书预览 */
+        .document-preview {
+            background-color: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            overflow-y: auto;
+            max-height: calc(100vh - 280px);
+            flex: 1;
+            min-width: 400px;
+        }
+
+        .preview-header {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e5e7eb;
+            color: #1f2937;
+        }
+
+        .content-text {
+            font-size: 15px;
+            line-height: 1.8;
+            color: #374151;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .content-text .highlight {
+            background-color: rgba(239, 68, 68, 0.1);
+            padding: 2px 4px;
+            border-bottom: 2px solid #ef4444;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .content-text .highlight:hover {
+            background-color: rgba(239, 68, 68, 0.2);
+        }
+
+        /* 空状态 */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 300px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .empty-state .icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            color: #cbd5e1;
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 280px 1fr;
+            }
+
+            .result-detail {
+                flex-direction: column;
+            }
+
+            .resizer {
+                display: none;
+            }
+
+            .issue-list {
+                max-height: 400px;
+                width: 100% !important;
+            }
+
+            .document-preview {
+                min-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .result-overview {
+                flex-direction: column;
+            }
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+
+    <!-- 集中配置文件 - 必须最先加载 -->
+    <script src="../config/index.js"></script>
+    
+    <script src="../js/config.js"></script>
+    <script>
+        // 全局变量
+        let currentFile = null;
+        let reviewResults = null;
+
+        // 页面加载完成
+        document.addEventListener('DOMContentLoaded', function () {
+            // 检查登录状态
+            const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+            const userDisplay = document.getElementById('userDisplay');
+            if (token) {
+                const username = localStorage.getItem('username') || '用户';
+                userDisplay.textContent = username;
+            }
+
+            initializeUpload();
+            initializeTemplateSelection();
+            initializeFilters();
+            initializeResizer();
+        });
+
+        // 初始化文件上传
+        function initializeUpload() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+
+            if (!uploadArea || !fileInput) {
+                console.error('无法找到上传区域或文件输入框');
+                return;
+            }
+
+            // 点击上传通过文件输入框的覆盖实现，无需额外绑定点击事件
+            // 文件输入框已经覆盖在上传区域上（opacity: 0），点击上传区域会自动触发文件选择
+
+            // 拖拽上传
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('drag-over');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+                if (e.dataTransfer.files.length > 0) {
+                    handleFile(e.dataTransfer.files[0]);
+                }
+            });
+
+            // 文件选择
+            fileInput.addEventListener('change', () => {
+                console.log('文件选择事件触发');
+                console.log('文件数量:', fileInput.files.length);
+                if (fileInput.files.length > 0) {
+                    console.log('选中的文件:', fileInput.files[0].name);
+                    console.log('文件大小:', fileInput.files[0].size);
+                    try {
+                        handleFile(fileInput.files[0]);
+                    } catch (error) {
+                        console.error('文件处理失败:', error);
+                        alert('文件上传失败: ' + error.message);
+                    }
+                } else {
+                    console.log('没有选中文件');
+                }
+            });
+        }
+        
+        // 初始化审查模板选择
+        function initializeTemplateSelection() {
+            const templateSelect = document.getElementById('templateSelect');
+            const customRuleInput = document.getElementById('customRuleInput');
+            
+            // 监听模板选择变化
+            templateSelect.addEventListener('change', function() {
+                if (this.value === 'custom') {
+                    customRuleInput.style.display = 'block';
+                } else {
+                    customRuleInput.style.display = 'none';
+                }
+            });
+            
+            // 初始检查
+            if (templateSelect.value === 'custom') {
+                customRuleInput.style.display = 'block';
+            }
+        }
+
+        // 处理文件上传
+        function handleFile(file) {
+            console.log('handleFile函数调用');
+            console.log('文件:', file.name);
+            console.log('文件大小:', file.size);
+
+            try {
+                // 验证文件大小
+                if (file.size > 20 * 1024 * 1024) {
+                    alert('文件大小不能超过20MB');
+                    return;
+                }
+
+                // 验证文件类型
+                const validTypes = ['.docx', '.doc', '.pdf', '.txt', '.xlsx', '.pptx'];
+                const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+                if (!validTypes.includes(fileExt)) {
+                    alert('仅支持 docx、doc、pdf、txt、xlsx、pptx 格式的文件');
+                    return;
+                }
+
+                currentFile = file;
+                console.log('currentFile已设置');
+
+                // 获取DOM元素
+                const uploadArea = document.getElementById('uploadArea');
+                const fileNameElement = document.getElementById('fileName');
+                const fileInfo = document.getElementById('fileInfo');
+                const reviewBtn = document.getElementById('reviewBtn');
+                
+                if (!uploadArea) {
+                    console.error('找不到uploadArea元素');
+                    throw new Error('找不到上传区域元素');
+                }
+                if (!fileNameElement) {
+                    console.error('找不到fileName元素');
+                    throw new Error('找不到文件名称元素');
+                }
+                if (!fileInfo) {
+                    console.error('找不到fileInfo元素');
+                    throw new Error('找不到文件信息元素');
+                }
+                if (!reviewBtn) {
+                    console.error('找不到reviewBtn元素');
+                    throw new Error('找不到审查按钮元素');
+                }
+
+                // 隐藏上传区域
+                console.log('隐藏上传区域');
+                uploadArea.style.display = 'none';
+                
+                // 获取文件图标
+                let fileIcon = '';
+                if (fileExt === '.docx' || fileExt === '.doc') {
+                    fileIcon = '<img src="../images/word.svg" alt="Word文件" class="file-icon">';
+                } else if (fileExt === '.pdf') {
+                    fileIcon = '<img src="../images/pdf.svg" alt="PDF文件" class="file-icon">';
+                } else if (fileExt === '.xlsx') {
+                    fileIcon = '<i class="fa-solid fa-file-excel file-icon-text" style="color: #217346;"></i>';
+                } else if (fileExt === '.pptx') {
+                    fileIcon = '<i class="fa-solid fa-file-powerpoint file-icon-text" style="color: #d24726;"></i>';
+                } else {
+                    fileIcon = '<i class="fa-solid fa-file-alt file-icon-text"></i>';
+                }
+
+                // 显示文件信息（带图标）
+                console.log('显示文件信息');
+                fileNameElement.innerHTML = `${fileIcon} ${file.name}`;
+                fileInfo.style.display = 'block';
+                reviewBtn.disabled = false;
+                console.log('文件信息显示完成');
+
+                // 预览文件
+                console.log('开始预览文件');
+                previewDocument(file);
+                console.log('预览文件函数调用完成');
+                
+            } catch (error) {
+                console.error('handleFile执行过程中出错:', error);
+                alert('文件处理失败: ' + error.message);
+            }
+        }
+
+        // 清空文件
+        function clearFile() {
+            currentFile = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('fileInfo').style.display = 'none';
+            document.getElementById('reviewBtn').disabled = true;
+            
+            // 重新显示上传区域
+            document.getElementById('uploadArea').style.display = 'block';
+
+            // 重置预览
+            document.getElementById('documentPreviewContent').innerHTML = `
+                <div class="empty-state">
+                    <div class="icon"><i class="fa-solid fa-file-alt"></i></div>
+                    <div>暂无文书预览，请先上传文件</div>
+                </div>
+            `;
+
+            // 隐藏结果
+            document.getElementById('resultOverview').style.display = 'none';
+            document.getElementById('issueListContent').innerHTML = `
+                <div class="empty-state">
+                    <div class="icon"><i class="fa-solid fa-file-circle-question"></i></div>
+                    <div>请上传文件并点击「开始智能审查」</div>
+                </div>
+            `;
+        }
+
+        // 导航功能
+        function goToHome() {
+            window.location.href = 'professional.html';
+        }
+
+        function goToChat() {
+            window.location.href = 'professional.html#chat';
+        }
+
+        function goToLawSearch() {
+            window.location.href = 'professional.html#law-search';
+        }
+
+        function goToDocGen() {
+            window.location.href = 'professional.html#doc-gen';
+        }
+
+        function goToDocReview() {
+            // 当前页面，无需跳转
+        }
+
+        // 预览文档
+        async function previewDocument(file) {
+            console.log('previewDocument函数调用，文件名:', file.name, '文件大小:', file.size);
+            const previewContent = document.getElementById('documentPreviewContent');
+
+            if (!previewContent) {
+                console.error('找不到documentPreviewContent元素');
+                return;
+            }
+
+            // 根据文件类型选择读取方式
+            const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+            console.log('文件扩展名:', fileExt);
+
+            // 显示加载状态
+            previewContent.innerHTML = `
+                <div class="preview-header">${file.name}</div>
+                <div class="content-text">
+                    <p>文件类型：${fileExt.substring(1).toUpperCase()}</p>
+                    <p>文件大小：${formatFileSize(file.size)}</p>
+                    <p><i class="fa-solid fa-spinner fa-spin"></i> 正在加载文件内容...</p>
+                </div>
+            `;
+
+            try {
+                if (fileExt === '.txt') {
+                    // 对于TXT文件，直接在浏览器中读取
+                    console.log('开始读取TXT文件');
+                    await previewTextFile(file, previewContent);
+                } else if (['.docx', '.doc', '.pdf', '.xlsx', '.pptx'].includes(fileExt)) {
+                    // 对于Word、PDF、Excel、PPT文件，调用后端API获取内容
+                    console.log('准备预览文件:', fileExt);
+                    await fetchFileContent(file);
+                } else {
+                    // 不支持的文件类型
+                    console.warn('不支持的文件类型:', fileExt);
+                    previewContent.innerHTML = `
+                        <div class="preview-header">${file.name}</div>
+                        <div class="content-text">
+                            <p><i class="fa-solid fa-exclamation-triangle"></i> 不支持的文件类型</p>
+                            <p>文件类型：${fileExt.substring(1).toUpperCase()}</p>
+                            <p>文件大小：${formatFileSize(file.size)}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('[previewDocument] 预览失败:', error);
+                previewContent.innerHTML = `
+                    <div class="preview-header">${file.name}</div>
+                    <div class="content-text">
+                        <p><i class="fa-solid fa-exclamation-triangle"></i> 预览失败：${error.message}</p>
+                        <p>文件类型：${fileExt.substring(1).toUpperCase()}</p>
+                        <p>文件大小：${formatFileSize(file.size)}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 预览文本文件
+        function previewTextFile(file, previewContent) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    console.log('TXT文件读取成功');
+                    let content = e.target.result;
+                    // 处理换行符，确保正确显示
+                    content = content.replace(/\r\n/g, '<br>').replace(/\n/g, '<br>').replace(/\r/g, '<br>');
+
+                    previewContent.innerHTML = `
+                        <div class="preview-header">${file.name}</div>
+                        <div class="content-text">${content}</div>
+                    `;
+                    resolve();
+                };
+
+                reader.onerror = function() {
+                    console.error('TXT文件读取失败');
+                    previewContent.innerHTML = `
+                        <div class="preview-header">${file.name}</div>
+                        <div class="content-text">
+                            <p><i class="fa-solid fa-exclamation-triangle"></i> 无法预览文件内容</p>
+                        </div>
+                    `;
+                    reject(new Error('文件读取失败'));
+                };
+
+                reader.readAsText(file, 'utf-8');
+            });
+        }
+        
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // 从后端获取文件内容
+        async function fetchFileContent(file) {
+            const previewContent = document.getElementById('documentPreviewContent');
+            const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+
+            console.log('[fetchFileContent] 开始提取文件内容:', file.name);
+
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const apiBaseUrl = window.API_BASE_URL || 'http://localhost:8001';
+                console.log('[fetchFileContent] 发送请求到:', `${apiBaseUrl}/api/document-ai/extract-content`);
+
+                const response = await fetch(`${apiBaseUrl}/api/document-ai/extract-content`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                console.log('[fetchFileContent] 响应状态:', response.status, response.statusText);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('[fetchFileContent] 响应错误:', errorText);
+                    throw new Error(`文件内容提取失败 (${response.status}): ${errorText}`);
+                }
+
+                const result = await response.json();
+                console.log('[fetchFileContent] 响应结果:', result);
+
+                if (result.code === 200 && result.data) {
+                    let content = result.data.content || '文件内容为空';
+                    console.log('[fetchFileContent] 内容长度:', content.length);
+
+                    // 处理换行符，确保正确显示
+                    content = content.replace(/\r\n/g, '<br>').replace(/\n/g, '<br>').replace(/\r/g, '<br>');
+                    // 修复文本格式，确保单词之间有空格
+                    content = content.replace(/([a-z])([A-Z])/g, '$1 $2'); // 在大小写字母之间添加空格
+                    content = content.replace(/([.,;:])([A-Z])/g, '$1 $2'); // 在标点符号后添加空格
+
+                    previewContent.innerHTML = `
+                        <div class="preview-header">${file.name}</div>
+                        <div class="content-text">${content}</div>
+                    `;
+                } else {
+                    throw new Error(result.message || '提取失败');
+                }
+            } catch (error) {
+                console.error('[fetchFileContent] 提取失败:', error);
+                previewContent.innerHTML = `
+                    <div class="preview-header">${file.name}</div>
+                    <div class="content-text">
+                        <p><i class="fa-solid fa-info-circle"></i> 文件内容预览暂时不可用</p>
+                        <p>文件类型：${fileExt.substring(1).toUpperCase()}</p>
+                        <p>文件大小：${formatFileSize(file.size)}</p>
+                        <p style="color: #dc2626; font-size: 12px; margin-top: 10px;">错误信息：${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 开始审查
+        document.getElementById('reviewBtn').addEventListener('click', async function () {
+            if (!currentFile) {
+                alert('请先上传文件');
+                return;
+            }
+
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 审查中...';
+
+            try {
+                // 调用后端API进行审查
+                await performReview();
+
+                // 恢复按钮
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-search"></i> 开始智能审查';
+            } catch (error) {
+                console.error('[review] 审查失败:', error);
+                alert('审查失败: ' + error.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-search"></i> 开始智能审查';
+            }
+        });
+
+        // 执行审查
+        async function performReview() {
+            // 获取配置
+            const template = document.getElementById('templateSelect').value;
+            const sensitivity = document.getElementById('sensitivityLevel').value;
+            const dimensions = [];
+            document.querySelectorAll('.checkbox-group input:checked').forEach(cb => {
+                dimensions.push(cb.parentElement.textContent.trim());
+            });
+
+            console.log('[performReview] 配置:', { template, sensitivity, dimensions });
+
+            // 调用后端AI分析API
+            const formData = new FormData();
+            formData.append('file', currentFile);
+            formData.append('document_type', template);
+            formData.append('sensitivity', sensitivity);
+            
+            // 如果选择了自定义规则，添加自定义提示词
+            if (template === 'custom') {
+                const customRuleText = document.getElementById('customRuleText').value.trim();
+                if (customRuleText) {
+                    formData.append('custom_rule', customRuleText);
+                }
+            }
+
+            try {
+                // 获取token用于认证
+                const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+                const apiBaseUrl = window.API_BASE_URL || 'http://localhost:8001';
+                
+                const response = await fetch(`${apiBaseUrl}/api/document-ai/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                    },
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || '分析失败');
+                }
+
+                const result = await response.json();
+                console.log('[performReview] AI分析结果:', result);
+
+                if (result.code === 200 && result.data) {
+                    const data = result.data;
+                    
+                    // 转换AI返回的结果格式
+                    reviewResults = {
+                        total: data.total_issues || 0,
+                        high: data.issues ? data.issues.filter(i => i.level === 'high').length : 0,
+                        medium: data.issues ? data.issues.filter(i => i.level === 'medium').length : 0,
+                        low: data.issues ? data.issues.filter(i => i.level === 'low').length : 0,
+                        risk_summary: data.risk_summary || '',
+                        issues: data.issues || []
+                    };
+
+                    displayResults(reviewResults);
+                } else {
+                    throw new Error(result.message || '分析结果异常');
+                }
+            } catch (error) {
+                console.error('[performReview] AI分析失败:', error);
+                throw error;
+            }
+        }
+
+        // 显示审查结果
+        function displayResults(results) {
+            // 显示概览
+            document.getElementById('resultOverview').style.display = 'flex';
+            document.getElementById('totalIssues').textContent = results.total;
+            document.getElementById('highCount').textContent = results.high;
+            document.getElementById('mediumCount').textContent = results.medium;
+            document.getElementById('lowCount').textContent = results.low;
+
+            // 渲染问题列表
+            const issueListContent = document.getElementById('issueListContent');
+            issueListContent.innerHTML = results.issues.map(issue => `
+                <div class="issue-item ${issue.level}" data-issue-id="${issue.id}" data-position="${issue.position}">
+                    <div class="title">
+                        <span>${issue.title}</span>
+                        <span class="type">${issue.type}</span>
+                    </div>
+                    <div class="desc">${issue.desc}</div>
+                    <div class="suggestion">${issue.suggestion}</div>
+                </div>
+            `).join('');
+
+            // 添加问题项点击事件
+            document.querySelectorAll('.issue-item').forEach(item => {
+                item.addEventListener('click', function () {
+                    const position = this.getAttribute('data-position');
+                    if (position && position !== 'null') {
+                        highlightIssue(parseInt(position));
+                    }
+                });
+            });
+        }
+
+        // 高亮问题位置
+        function highlightIssue(position) {
+            const highlights = document.querySelectorAll('.highlight');
+
+            // 移除所有高亮
+            highlights.forEach(h => {
+                h.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+            });
+
+            // 高亮指定位置
+            if (highlights[position]) {
+                highlights[position].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                highlights[position].style.backgroundColor = 'rgba(239, 68, 68, 0.3)';
+
+                setTimeout(() => {
+                    highlights[position].style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+                }, 2000);
+            }
+        }
+
+        // 初始化筛选器
+        function initializeFilters() {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    // 更新active状态
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // 筛选问题
+                    const filter = this.getAttribute('data-filter');
+                    document.querySelectorAll('.issue-item').forEach(item => {
+                        if (filter === 'all' || item.classList.contains(filter)) {
+                            item.style.display = 'block';
+                        } else {
+                            item.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        }
+
+        // 初始化可调整大小的分隔线
+        function initializeResizer() {
+            const resizer = document.getElementById('resizer');
+            const issueList = document.getElementById('issueList');
+            const documentPreview = document.getElementById('documentPreview');
+            const resultDetail = document.getElementById('resultDetail');
+
+            if (!resizer || !issueList || !documentPreview || !resultDetail) {
+                return;
+            }
+
+            let isResizing = false;
+            let startX = 0;
+            let startWidth = 0;
+
+            resizer.addEventListener('mousedown', function (e) {
+                isResizing = true;
+                startX = e.clientX;
+                startWidth = issueList.offsetWidth;
+
+                // 添加拖动时的样式
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', function (e) {
+                if (!isResizing) return;
+
+                const deltaX = e.clientX - startX;
+                const newWidth = startWidth + deltaX;
+
+                // 设置最小和最大宽度
+                const minWidth = 280;
+                const maxWidth = resultDetail.offsetWidth - 400 - 4; // 减去分隔线宽度和预览最小宽度
+
+                if (newWidth >= minWidth && newWidth <= maxWidth) {
+                    issueList.style.width = newWidth + 'px';
+                }
+            });
+
+            document.addEventListener('mouseup', function () {
+                if (isResizing) {
+                    isResizing = false;
+                    document.body.style.cursor = '';
+                    document.body.style.userSelect = '';
+                }
+            });
+        }
+
+        // 导出报告
+        // 重新审查
+        function reviewAgain() {
+            if (confirm('确定要重新审查吗？')) {
+                document.getElementById('reviewBtn').click();
+            }
+        }
+    </script>
+</body>
+
+</html>

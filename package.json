@@ -1,40 +1,29 @@
 {
-  "name": "legal-ai-uniapp",
+  "name": "legal-ai-frontend",
   "version": "1.0.0",
-  "description": "法义AI助手 - 专业的法律AI咨询和文书生成应用",
-  "main": "main.js",
+  "description": "智能法律咨询与证据分析系统 - 前端项目",
+  "main": "index.html",
   "scripts": {
-    "serve": "uni serve",
-    "build": "uni build",
-    "dev:h5": "uni serve --platform h5",
-    "build:h5": "uni build --platform h5",
-    "dev:mp-weixin": "uni serve --platform mp-weixin",
-    "build:mp-weixin": "uni build --platform mp-weixin",
-    "dev:app": "uni serve --platform app",
-    "build:app": "uni build --platform app"
+    "start": "python -m http.server 8080",
+    "dev": "python -m http.server 8080",
+    "test": "echo \"No tests specified yet\" && exit 0"
   },
-  "dependencies": {
-    "vue": "^2.6.14",
-    "vuex": "^3.6.2"
-  },
-  "devDependencies": {
-    "@dcloudio/cli": "^2.0.0",
-    "sass": "^1.32.13",
-    "sass-loader": "^10.4.1"
-  },
-  "browserslist": [
-    "Android >= 4.4",
-    "ios >= 9"
-  ],
   "keywords": [
-    "uniapp",
     "legal",
     "ai",
-    "assistant",
-    "document",
-    "generation",
-    "consultation"
+    "evidence",
+    "analysis",
+    "law"
   ],
   "author": "Legal AI Team",
-  "license": "MIT"
+  "license": "PRIVATE",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/legal-ai-frontend.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/legal-ai-frontend/issues"
+  },
+  "homepage": "https://github.com/your-org/legal-ai-frontend#readme"
 }

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>法律AI助手 - 登录/注册</title>
+    <style>
+        :root {
+            --primary-color: #1a365d;
+            --secondary-color: #2b6cb0;
+            --accent-color: #f56565;
+            --light-color: #f7fafc;
+            --dark-color: #2d3748;
+            --text-color: #4a5568;
+            --border-color: #e2e8f0;
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--light-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 900px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: row;
+            transition: var(--transition);
+        }
+
+        .container:hover {
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .left-section {
+            flex: 1;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 40px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .left-section h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .left-section p {
+            font-size: 16px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        .features {
+            list-style: none;
+            margin-bottom: 40px;
+        }
+
+        .features li {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .features li i {
+            margin-right: 10px;
+            color: #63b3ed;
+        }
+
+        .right-section {
+            flex: 1;
+            padding: 40px;
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-header h2 {
+            color: var(--primary-color);
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .form-header p {
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        .form-tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-color);
+            transition: var(--transition);
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .form {
+            display: none;
+        }
+
+        .form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: var(--transition);
+            background: var(--light-color);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(26, 54, 93, 0.1);
+            background: white;
+        }
+
+        .form-group input::placeholder {
+            color: #a0aec0;
+        }
+
+        .remember-forgot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .remember-forgot label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        .remember-forgot input[type="checkbox"] {
+            margin-right: 8px;
+            width: auto;
+        }
+
+        .remember-forgot a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .remember-forgot a:hover {
+            text-decoration: underline;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2a4365;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            margin-top: 15px;
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 25px 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--border-color);
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 20px;
+            position: relative;
+            color: #a0aec0;
+            font-size: 12px;
+        }
+
+        .social-login {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .social-btn {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .social-btn:hover {
+            background: var(--light-color);
+            transform: translateY(-2px);
+        }
+
+        .social-btn i {
+            font-size: 16px;
+        }
+
+        .social-btn.qq i {
+            color: #12B7F5;
+        }
+
+        .social-btn.weixin i {
+            color: #07C160;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #a0aec0;
+        }
+
+        .footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                max-width: 400px;
+            }
+
+            .left-section {
+                padding: 30px;
+            }
+
+            .left-section h1 {
+                font-size: 24px;
+            }
+
+            .right-section {
+                padding: 30px 20px;
+            }
+
+            .social-login {
+                flex-direction: column;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div class="container">
+    <div class="left-section">
+        <h1>法律AI助手</h1>
+        <p>智能法律解决方案，为您提供专业法律咨�?/p>
+        <ul class="features">
+            <li><i class="fas fa-shield-alt"></i> 专业法律知识</li>
+            <li><i class="fas fa-brain"></i> AI智能分析</li>
+            <li><i class="fas fa-clock"></i> 24/7全天候服�?/li>
+            <li><i class="fas fa-lock"></i> 数据安全保障</li>
+        </ul>
+        <div class="legal-icon">
+            <i class="fas fa-balance-scale" style="font-size: 80px; opacity: 0.7;"></i>
+        </div>
+    </div>
+    <div class="right-section">
+        <div class="form-header">
+            <h2>欢迎回来</h2>
+            <p>请登录或注册以使用法律AI助手</p>
+        </div>
+
+        <div class="form-tabs">
+            <div class="tab active" data-tab="login">登录</div>
+            <div class="tab" data-tab="register">注册</div>
+        </div>
+
+        <form class="form active" id="login-form">
+            <div class="form-group">
+                <label for="login-email">邮箱</label>
+                <input type="email" id="login-email" placeholder="请输入您的邮�?>
+            </div>
+            <div class="form-group">
+                <label for="login-password">密码</label>
+                <input type="password" id="login-password" placeholder="请输入您的密�?>
+            </div>
+            <div class="remember-forgot">
+                <label>
+                    <input type="checkbox"> 记住�?
+                </label>
+                <a href="#">忘记密码�?/a>
+            </div>
+            <button type="button" class="btn btn-primary">登录</button>
+
+            <div class="divider">
+                <span>�?/span>
+            </div>
+
+            <div class="social-login">
+                <button type="button" class="social-btn qq">
+                    <i class="fab fa-qq"></i>
+                    <span>QQ</span>
+                </button>
+                <button type="button" class="social-btn weixin">
+                    <i class="fab fa-weixin"></i>
+                    <span>微信</span>
+                </button>
+            </div>
+        </form>
+
+        <form class="form" id="register-form">
+            <div class="form-group">
+                <label for="register-name">姓名</label>
+                <input type="text" id="register-name" placeholder="请输入您的姓�?>
+            </div>
+            <div class="form-group">
+                <label for="register-email">邮箱</label>
+                <input type="email" id="register-email" placeholder="请输入您的邮�?>
+            </div>
+            <div class="form-group">
+                <label for="register-password">密码</label>
+                <input type="password" id="register-password" placeholder="请设置您的密�?>
+            </div>
+            <div class="form-group">
+                <label for="register-confirm-password">确认密码</label>
+                <input type="password" id="register-confirm-password" placeholder="请确认您的密�?>
+            </div>
+            <button type="button" class="btn btn-primary">注册</button>
+            <button type="button" class="btn btn-secondary">已有账号？立即登�?/button>
+        </form>
+
+        <div class="footer">
+            <p>登录或注册即表示您同意我们的<a href="#">服务条款</a>�?a href="#">隐私政策</a></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabs = document.querySelectorAll('.tab');
+        const forms = document.querySelectorAll('.form');
+        const registerBtn = document.querySelector('.btn-secondary');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+
+                // 更新标签状�?
+                tabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                // 更新表单显示
+                forms.forEach(form => {
+                    form.classList.remove('active');
+                    if (form.id === `${tabId}-form`) {
+                        form.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        registerBtn.addEventListener('click', function() {
+            tabs.forEach(tab => {
+                if (tab.getAttribute('data-tab') === 'login') {
+                    tab.click();
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

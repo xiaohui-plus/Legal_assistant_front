@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设备指纹碰撞测试工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background: #f7f8fa;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #1e3a8a;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .test-section {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+        
+        h2 {
+            color: #1e40af;
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+        
+        .device-info {
+            background: #f0f4ff;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .device-info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e7ff;
+        }
+        
+        .device-info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .device-info-label {
+            font-weight: 600;
+            color: #1e3a8a;
+        }
+        
+        .device-info-value {
+            color: #4b5563;
+            font-family: monospace;
+            word-break: break-all;
+        }
+        
+        .fingerprint-display {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .fingerprint-title {
+            font-weight: 600;
+            color: #1e3a8a;
+            margin-bottom: 8px;
+        }
+        
+        .fingerprint-value {
+            font-family: monospace;
+            font-size: 16px;
+            color: #0f172a;
+            word-break: break-all;
+        }
+        
+        .test-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #1e40af;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1e3a8a;
+        }
+        
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+        
+        .test-results {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .result-item {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 8px;
+        }
+        
+        .result-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .result-index {
+            font-weight: 600;
+            color: #1e40af;
+        }
+        
+        .result-status {
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-unique {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-collision {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .result-fingerprint {
+            font-family: monospace;
+            font-size: 14px;
+            color: #4b5563;
+            word-break: break-all;
+        }
+        
+        .stats {
+            background: #f0f4ff;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
+        
+        .stat-label {
+            font-weight: 600;
+            color: #1e3a8a;
+        }
+        
+        .stat-value {
+            color: #0f172a;
+            font-weight: 500;
+        }
+        
+        .warning {
+            background: #fffbeb;
+            border: 1px solid #fcd34d;
+            color: #92400e;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .success {
+            background: #ecfdf5;
+            border: 1px solid #34d399;
+            color: #065f46;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 设备指纹碰撞测试工具</h1>
+        
+        <div class="warning">
+            <strong>⚠️ 注意�?/strong>此工具用于测试设备指纹的唯一性和稳定性。生成大量模拟指纹可能会消耗浏览器资源�?        </div>
+        
+        <div class="test-section">
+            <h2>📊 当前设备信息</h2>
+            <div class="device-info" id="deviceInfo">
+                <!-- 设备信息将通过JavaScript动态生�?-->
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🔑 当前设备指纹</h2>
+            <div class="fingerprint-display">
+                <div class="fingerprint-title">SHA-256指纹�?/div>
+                <div class="fingerprint-value" id="currentFingerprint">生成�?..</div>
+            </div>
+            <div class="fingerprint-display">
+                <div class="fingerprint-title">降级方案指纹�?/div>
+                <div class="fingerprint-value" id="fallbackFingerprint">生成�?..</div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🧪 碰撞测试</h2>
+            <div class="test-controls">
+                <button class="btn-primary" onclick="runCollisionTest(100)">测试 100 个指�?/button>
+                <button class="btn-primary" onclick="runCollisionTest(1000)">测试 1000 个指�?/button>
+                <button class="btn-secondary" onclick="clearResults()">清除结果</button>
+            </div>
+            
+            <div class="test-results" id="testResults">
+                <p style="text-align: center; color: #64748b;">点击上方按钮开始测�?..</p>
+            </div>
+            
+            <div class="stats" id="testStats" style="display: none;">
+                <div class="stat-item">
+                    <span class="stat-label">总测试次数：</span>
+                    <span class="stat-value" id="totalTests">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">唯一指纹数：</span>
+                    <span class="stat-value" id="uniqueFingerprints">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">碰撞次数�?/span>
+                    <span class="stat-value" id="collisionCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">碰撞率：</span>
+                    <span class="stat-value" id="collisionRate">0%</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">测试时间�?/span>
+                    <span class="stat-value" id="testTime">0 ms</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📈 稳定性测�?/h2>
+            <div class="test-controls">
+                <button class="btn-primary" onclick="runStabilityTest()">测试指纹稳定�?/button>
+            </div>
+            <div class="test-results" id="stabilityResults">
+                <p style="text-align: center; color: #64748b;">点击上方按钮开始测�?..</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 设备指纹生成函数 ====================
+        
+        function generateDeviceFingerprint(useFallback = false) {
+            console.log('🔍 正在生成设备指纹...');
+            
+            // 收集设备特征
+            const features = [
+                navigator.userAgent || 'unknown',
+                navigator.language || 'unknown',
+                navigator.platform || 'unknown',
+                navigator.hardwareConcurrency || 'unknown',
+                (screen.width + 'x' + screen.height) || 'unknown',
+                navigator.deviceMemory || 'unknown',
+                navigator.webdriver || false,
+                navigator.cookieEnabled || false,
+                Object.keys(navigator.plugins).length || 0,
+                Object.keys(navigator.mimeTypes).length || 0,
+                navigator.connection?.effectiveType || 'unknown',
+                navigator.colorDepth || 'unknown',
+                navigator.maxTouchPoints || 'unknown'
+            ];
+            
+            if (useFallback || !window.crypto || !window.crypto.subtle) {
+                // 降级方案：使用简单哈�?                const fallbackFingerprint = btoa(features.join('|')).substring(0, 32);
+                console.log('⚠️ 使用降级方案生成设备指纹');
+                return fallbackFingerprint;
+            } else {
+                // 使用SHA-256生成指纹
+                return new Promise((resolve) => {
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(features.join('|'));
+                    
+                    window.crypto.subtle.digest('SHA-256', data)
+                        .then(hash => {
+                            const hashArray = Array.from(new Uint8Array(hash));
+                            const fingerprint = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                            console.log('�?设备指纹生成成功:', fingerprint.substring(0, 16) + '...');
+                            resolve(fingerprint);
+                        })
+                        .catch(() => {
+                            // 降级方案：使用简单哈�?                            const fallbackFingerprint = btoa(features.join('|')).substring(0, 32);
+                            console.log('⚠️ 使用降级方案生成设备指纹');
+                            resolve(fallbackFingerprint);
+                        });
+                });
+            }
+        }
+        
+        // 生成模拟设备特征（用于碰撞测试）
+        function generateMockDeviceFeatures(index) {
+            const userAgents = [
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15',
+                'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15',
+                'Mozilla/5.0 (iPad; CPU OS 16_0 like Mac OS X) AppleWebKit/605.1.15',
+                'Mozilla/5.0 (Linux; Android 13; SM-G998U) AppleWebKit/537.36'
+            ];
+            
+            const languages = ['zh-CN', 'en-US', 'ja-JP', 'ko-KR', 'fr-FR'];
+            const platforms = ['Win32', 'MacIntel', 'iPhone', 'iPad', 'Linux armv8l'];
+            
+            return {
+                userAgent: userAgents[index % userAgents.length],
+                language: languages[index % languages.length],
+                platform: platforms[index % platforms.length],
+                hardwareConcurrency: Math.floor(Math.random() * 8) + 2,
+                screenSize: `${Math.floor(Math.random() * 1000) + 800}x${Math.floor(Math.random() * 800) + 600}`,
+                deviceMemory: Math.floor(Math.random() * 16) + 4,
+                webdriver: Math.random() > 0.9,
+                cookieEnabled: Math.random() > 0.1,
+                pluginsCount: Math.floor(Math.random() * 20),
+                mimeTypesCount: Math.floor(Math.random() * 50),
+                connectionType: ['4g', '3g', '2g', 'slow-2g'][Math.floor(Math.random() * 4)],
+                colorDepth: [24, 32][Math.floor(Math.random() * 2)],
+                maxTouchPoints: Math.floor(Math.random() * 10)
+            };
+        }
+        
+        // 基于模拟特征生成指纹
+        function generateMockFingerprint(features) {
+            const featureArray = [
+                features.userAgent,
+                features.language,
+                features.platform,
+                features.hardwareConcurrency,
+                features.screenSize,
+                features.deviceMemory,
+                features.webdriver,
+                features.cookieEnabled,
+                features.pluginsCount,
+                features.mimeTypesCount,
+                features.connectionType,
+                features.colorDepth,
+                features.maxTouchPoints
+            ];
+            
+            if (window.crypto && window.crypto.subtle) {
+                return new Promise((resolve) => {
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(featureArray.join('|'));
+                    
+                    window.crypto.subtle.digest('SHA-256', data)
+                        .then(hash => {
+                            const hashArray = Array.from(new Uint8Array(hash));
+                            const fingerprint = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                            resolve(fingerprint);
+                        })
+                        .catch(() => {
+                            const fallbackFingerprint = btoa(featureArray.join('|')).substring(0, 32);
+                            resolve(fallbackFingerprint);
+                        });
+                });
+            } else {
+                return btoa(featureArray.join('|')).substring(0, 32);
+            }
+        }
+        
+        // ==================== 碰撞测试函数 ====================
+        
+        async function runCollisionTest(count) {
+            const resultsContainer = document.getElementById('testResults');
+            const statsContainer = document.getElementById('testStats');
+            
+            resultsContainer.innerHTML = `<p style="text-align: center; color: #64748b;">正在生成 ${count} 个模拟指�?..</p>`;
+            
+            const fingerprints = new Set();
+            const collisionList = [];
+            const startTime = performance.now();
+            
+            for (let i = 0; i < count; i++) {
+                const mockFeatures = generateMockDeviceFeatures(i);
+                const fingerprint = await generateMockFingerprint(mockFeatures);
+                
+                if (fingerprints.has(fingerprint)) {
+                    collisionList.push({
+                        index: i + 1,
+                        fingerprint: fingerprint,
+                        features: mockFeatures
+                    });
+                } else {
+                    fingerprints.add(fingerprint);
+                }
+                
+                // 更新进度
+                if (i % 100 === 0 || i === count - 1) {
+                    resultsContainer.innerHTML = `<p style="text-align: center; color: #64748b;">已生�?${i + 1}/${count} 个指�?..</p>`;
+                }
+            }
+            
+            const endTime = performance.now();
+            const testTime = endTime - startTime;
+            
+            // 显示结果
+            displayTestResults(fingerprints, collisionList, count, testTime);
+        }
+        
+        function displayTestResults(fingerprints, collisionList, totalTests, testTime) {
+            const resultsContainer = document.getElementById('testResults');
+            const statsContainer = document.getElementById('testStats');
+            
+            const uniqueCount = fingerprints.size;
+            const collisionCount = collisionList.length;
+            const collisionRate = ((collisionCount / totalTests) * 100).toFixed(4);
+            
+            // 更新统计信息
+            document.getElementById('totalTests').textContent = totalTests;
+            document.getElementById('uniqueFingerprints').textContent = uniqueCount;
+            document.getElementById('collisionCount').textContent = collisionCount;
+            document.getElementById('collisionRate').textContent = collisionRate + '%';
+            document.getElementById('testTime').textContent = testTime.toFixed(2) + ' ms';
+            
+            statsContainer.style.display = 'block';
+            
+            // 显示结果列表
+            if (collisionCount === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="success">
+                        <strong>�?测试完成�?/strong><br>
+                        �?${totalTests} 次测试中未发现碰撞，设备指纹算法表现良好�?                    </div>
+                `;
+            } else {
+                let html = `<div class="warning">
+                    <strong>⚠️ 发现 ${collisionCount} 次碰撞！</strong><br>
+                    碰撞率：${collisionRate}%
+                </div>`;
+                
+                collisionList.forEach(item => {
+                    html += `
+                        <div class="result-item">
+                            <div class="result-header">
+                                <span class="result-index">碰撞 #${item.index}</span>
+                                <span class="result-status status-collision">碰撞</span>
+                            </div>
+                            <div class="result-fingerprint">${item.fingerprint}</div>
+                        </div>
+                    `;
+                });
+                
+                resultsContainer.innerHTML = html;
+            }
+        }
+        
+        // ==================== 稳定性测试函�?====================
+        
+        async function runStabilityTest() {
+            const resultsContainer = document.getElementById('stabilityResults');
+            resultsContainer.innerHTML = `<p style="text-align: center; color: #64748b;">正在测试指纹稳定�?..</p>`;
+            
+            const fingerprints = [];
+            
+            // 生成10次指纹进行比�?            for (let i = 0; i < 10; i++) {
+                const fingerprint = await generateDeviceFingerprint();
+                fingerprints.push({
+                    round: i + 1,
+                    fingerprint: fingerprint
+                });
+            }
+            
+            // 检查是否所有指纹都相同
+            const allSame = fingerprints.every(f => f.fingerprint === fingerprints[0].fingerprint);
+            
+            let html = '';
+            if (allSame) {
+                html = `
+                    <div class="success">
+                        <strong>�?稳定性测试通过�?/strong><br>
+                        连续10次生成的指纹完全一致，设备指纹算法稳定可靠�?                    </div>
+                `;
+            } else {
+                html = `<div class="warning">
+                    <strong>⚠️ 稳定性测试失败！</strong><br>
+                    检测到指纹不一致，可能是由于设备特征变化导致的�?                </div>`;
+                
+                fingerprints.forEach(item => {
+                    html += `
+                        <div class="result-item">
+                            <div class="result-header">
+                                <span class="result-index">�?${item.round} �?/span>
+                                <span class="result-status ${item.fingerprint === fingerprints[0].fingerprint ? 'status-unique' : 'status-collision'}">
+                                    ${item.fingerprint === fingerprints[0].fingerprint ? '一�? : '不一�?}
+                                </span>
+                            </div>
+                            <div class="result-fingerprint">${item.fingerprint}</div>
+                        </div>
+                    `;
+                });
+            }
+            
+            resultsContainer.innerHTML = html;
+        }
+        
+        // ==================== 辅助函数 ====================
+        
+        function clearResults() {
+            document.getElementById('testResults').innerHTML = `<p style="text-align: center; color: #64748b;">点击上方按钮开始测�?..</p>`;
+            document.getElementById('stabilityResults').innerHTML = `<p style="text-align: center; color: #64748b;">点击上方按钮开始测�?..</p>`;
+            document.getElementById('testStats').style.display = 'none';
+        }
+        
+        function displayDeviceInfo() {
+            const deviceInfoDiv = document.getElementById('deviceInfo');
+            
+            const infoItems = [
+                { label: 'User Agent', value: navigator.userAgent },
+                { label: 'Language', value: navigator.language },
+                { label: 'Platform', value: navigator.platform },
+                { label: 'Hardware Concurrency', value: navigator.hardwareConcurrency },
+                { label: 'Screen Size', value: `${screen.width}x${screen.height}` },
+                { label: 'Device Memory', value: navigator.deviceMemory || 'unknown' },
+                { label: 'WebDriver', value: navigator.webdriver },
+                { label: 'Cookie Enabled', value: navigator.cookieEnabled },
+                { label: 'Plugins Count', value: Object.keys(navigator.plugins).length },
+                { label: 'MIME Types Count', value: Object.keys(navigator.mimeTypes).length },
+                { label: 'Connection Type', value: navigator.connection?.effectiveType || 'unknown' },
+                { label: 'Color Depth', value: navigator.colorDepth },
+                { label: 'Max Touch Points', value: navigator.maxTouchPoints }
+            ];
+            
+            let html = '';
+            infoItems.forEach(item => {
+                html += `
+                    <div class="device-info-item">
+                        <span class="device-info-label">${item.label}:</span>
+                        <span class="device-info-value">${item.value}</span>
+                    </div>
+                `;
+            });
+            
+            deviceInfoDiv.innerHTML = html;
+        }
+        
+        // ==================== 页面加载完成后执�?====================
+        
+        async function init() {
+            displayDeviceInfo();
+            
+            // 生成当前设备指纹
+            const currentFingerprint = await generateDeviceFingerprint();
+            document.getElementById('currentFingerprint').textContent = currentFingerprint;
+            
+            const fallbackFingerprint = generateDeviceFingerprint(true);
+            document.getElementById('fallbackFingerprint').textContent = fallbackFingerprint;
+        }
+        
+        // 页面加载完成后初始化
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>

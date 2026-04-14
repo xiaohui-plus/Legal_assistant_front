@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>证据效力评估 - 法律AI助手</title>
+    <link rel="stylesheet" href="../css/global-styles.css">
+    <link rel="stylesheet" href="../css/evidence-chain.css">
+    <!-- 集中配置文件 - 必须最先加载 -->
+    <script src="../config/index.js"></script>
+    
+    <script src="../js/config.js"></script>
+</head>
+
+<body>
+    <div class="evidence-effectiveness-container">
+        <div class="effectiveness-header">
+            <div class="header-left">
+                <h1><img src="../images/logo.png" style="width: 32px; height: 32px; border-radius: 6px; vertical-align: middle; margin-right: 8px;"> 证据效力评估</h1>
+                <p class="header-subtitle">AI智能分析证据的真实性、合法性、关联性</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn-secondary" onclick="window.location.href='evidence-chain.html'">
+                    <img src="../images/返回.svg" style="width: 16px; height: 16px; margin-right: 8px; vertical-align: middle;"> 返回证据链
+                </button>
+            </div>
+        </div>
+
+        <div class="tab-navigation">
+            <button class="tab-btn active" data-tab="upload">
+                <img src="../images/文件.svg" style="width: 16px; height: 16px; margin-right: 8px; vertical-align: middle;"> 证据上传
+            </button>
+            <button class="tab-btn" data-tab="evaluate">
+                <img src="../images/效力.svg" style="width: 16px; height: 16px; margin-right: 8px; vertical-align: middle;"> 效力评估
+            </button>
+            <button class="tab-btn" data-tab="compare">
+                <img src="../images/综合评估1.svg" style="width: 16px; height: 16px; margin-right: 8px; vertical-align: middle;"> 对比分析
+            </button>
+        </div>
+
+        <div class="tab-contents">
+            <div class="tab-pane active" id="uploadTab">
+                <div class="upload-section">
+                    <div class="upload-card">
+                        <div class="upload-icon"><img src="../images/文件.svg" style="width: 48px; height: 48px;"></div>
+                        <h3>上传证据进行效力评估</h3>
+                        <form id="uploadEvidenceForm" class="upload-form">
+                            <div class="form-group">
+                                <label>案件类型 <span class="required">*</span></label>
+                                <select id="caseType" class="form-input" required>
+                                    <option value="">请选择案件类型</option>
+                                    <option value="民间借贷">民间借贷纠纷</option>
+                                    <option value="劳动争议">劳动争议纠纷</option>
+                                    <option value="离婚纠纷">离婚纠纷</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>选择文件 <span class="required">*</span></label>
+                                <input type="file" id="evidenceFile" class="form-input" required>
+                            </div>
+                            <button type="submit" class="btn-primary">开始评估</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane" id="evaluateTab">
+                <div id="evaluationResultContainer"></div>
+            </div>
+
+            <div class="tab-pane" id="compareTab">
+                <div class="compare-section">
+                    <p>对比分析功能开发中...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p id="loadingText">处理中...</p>
+    </div>
+
+    <script src="../js/evidence-effectiveness.js"></script>
+</body>
+
+</html>
