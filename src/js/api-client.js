@@ -3,9 +3,9 @@
  * 自动处理认证、错误、请�?响应拦截
  */
 
-// API配置
+// API配置 - 统一使用全局配置
 const API_CONFIG = {
-    BASE_URL: window.API_BASE_URL || 'http://154.89.153.127:8001',
+    BASE_URL: window.API_BASE_URL,
     TIMEOUT: 30000,
 
     // 路由前缀配置（注意：不同模块前缀不同�?

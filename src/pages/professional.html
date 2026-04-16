@@ -12,6 +12,9 @@
     <!-- Font Awesome 图标库 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- 必须在其他脚本之前加载配置文件，确保 window.API_BASE_URL 已定义 -->
+    <script src="../config/index.js"></script>
+
     <!-- 登录界面样式 v2.0 - 2026-02-15 紫蓝渐变设计 -->
     <style>
         * {
@@ -4036,7 +4039,7 @@
             document.body.appendChild(modal);
         }
 
-        const API_BASE = 'http://154.89.153.127:8001';
+        const API_BASE = window.API_BASE_URL;
         let currentUser = null;
         let currentChatId = null;
         let chats = [];
@@ -5640,7 +5643,7 @@
                     let errorContent = '抱歉，服务暂时不可用。';
 
                     if (error.message.includes('Failed to fetch')) {
-                        errorContent = '❌ 无法连接到服务器\n\n请检查：\n1. 后端服务是否运行在 http://154.89.153.127:8001\n2. 网络连接是否正常\n3. 浏览器控制台是否有CORS错误';
+                        errorContent = `❌ 无法连接到服务器\n\n请检查：\n1. 后端服务是否运行在 ${API_BASE}\n2. 网络连接是否正常\n3. 浏览器控制台是否有CORS错误`;
                     } else {
                         errorContent = `❌ 请求失败\n\n错误信息：${error.message}\n\n请查看浏览器控制台获取更多调试信息。`;
                     }
@@ -7059,7 +7062,7 @@
                                 </div>
                                 <div style="background: rgba(255,255,255,0.7); padding: 12px; border-radius: 6px; font-size: 12px; color: #7f1d1d;">
                                     <strong>请检查：</strong><br>
-                                    • 后端服务是否运行在 http://154.89.153.127:8001<br>
+                                    • 后端服务是否运行在 ${API_BASE}<br>
                                     • 网络连接是否正常<br>
                                     • 防火墙是否阻止了连接
                                 </div>
@@ -8107,7 +8110,7 @@
 
                     let errorMessage = error.message;
                     if (error.message.includes('Failed to fetch')) {
-                        errorMessage = '无法连接到服务器，请确认后端服务是否运行在 http://154.89.153.127:8001';
+                        errorMessage = `无法连接到服务器，请确认后端服务是否运行在 ${API_BASE}`;
                     }
 
                     resultsContainer.innerHTML = `

@@ -1,7 +1,7 @@
-// 个人中心API客户端 - 完整对接后端
+// 个人中心API客户端 - 完整对接后端，统一使用全局配置
 class PersonalCenterAPI {
     constructor() {
-        this.baseURL = window.API_BASE_URL || 'http://154.89.153.127:8001';
+        this.baseURL = window.API_BASE_URL;
         console.log('PersonalCenterAPI initialized with baseURL:', this.baseURL);
     }
 

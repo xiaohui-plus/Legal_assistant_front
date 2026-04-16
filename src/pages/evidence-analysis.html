@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>证据分析舱 - 法律AI助手</title>
+    <!-- 必须在其他脚本之前加载配置文件，确保 window.API_BASE_URL 已定义 -->
+    <script src="../config/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
     <style>
         * {
@@ -3310,8 +3312,8 @@
             }
         }
 
-        // API配置 - 从全局配置获取，或使用默认值
-        const API_BASE_URL = window.API_BASE_URL || 'http://localhost:8001';
+        // API配置 - 统一使用全局配置
+        const API_BASE_URL = window.API_BASE_URL;
         const DEV_MODE = window.DEV_MODE || false; // 生产模式：使用真实后端API
 
         // 获取或创建caseId（持久化到localStorage）

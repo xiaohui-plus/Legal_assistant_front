@@ -1,9 +1,9 @@
 // API服务封装
 
-// API服务类
+// API服务类 - 统一使用全局配置
 class APIService {
     constructor() {
-        this.baseURL = window.API_BASE_URL || 'http://154.89.153.127:8001';
+        this.baseURL = window.API_BASE_URL;
     }
 
     // 获取Token
