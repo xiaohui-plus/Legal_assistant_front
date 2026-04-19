@@ -4,7 +4,7 @@
 // API服务器配置
 var API_CONFIG = {
   // 服务器地址 - 修改这里即可改变所有API调用的目标服务器
-  BASE_URL: 'https://api.xiaodeng.top:8001',
+  BASE_URL: 'http://154.89.153.127:8001',
   
   // 本地开发地址（开发时取消注释，注释上面的服务器地址）
   // BASE_URL: 'http://localhost:8001',
