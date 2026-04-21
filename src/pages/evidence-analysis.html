@@ -2968,9 +2968,6 @@
             evidenceList.unshift(tempEvidence);
             renderEvidenceList();
 
-            // 显示上传状态
-            showUploadStatus('正在上传文件，请稍候...', 20);
-
             try {
                 // 1. 上传文件到后端（游客模式）
                 const formData = new FormData();
@@ -3077,13 +3074,8 @@
                     });
                 }, 1000);
 
-                // 隐藏上传状态
-                hideUploadStatus();
-
             } catch (error) {
                 console.error('游客模式上传失败:', error);
-                // 隐藏上传状态
-                hideUploadStatus();
                 throw error;
             }
         }

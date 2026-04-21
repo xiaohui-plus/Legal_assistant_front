@@ -4909,7 +4909,14 @@
         function autoResize(textarea) { }
         function handleKeyDown(event) { }
         function updateSearchMethod(method) { }
-        function openLawDetail(articleId, lawType) { }
+        function openLawDetail(articleId, lawType) {
+            // 保存搜索结果到 sessionStorage，供详情页使用
+            if (window.lawCurrentSearchResults) {
+                sessionStorage.setItem('lawSearchResults', JSON.stringify(window.lawCurrentSearchResults));
+            }
+            // 跳转到详情页
+            window.location.href = `law-detail.html?id=${encodeURIComponent(articleId)}&type=${encodeURIComponent(lawType)}`;
+        }
         function addRatingButtons(messageId, qaId) { }
         function renderMessages(messages) { }
         function addMessageToContainer(message) { }
@@ -8051,21 +8058,20 @@
                         return;
                     }
 
-                    // 构建查询参数（GET请求），固定使用全面搜索方法
+                    // 构建查询参数（GET 请求），使用补全法搜索
                     const params = new URLSearchParams({
                         query: query,
-                        method: 'multi',
                         top_k: '200',  // 增加返回结果数量
                         min_similarity: '0.1',  // 降低相似度阈值，获取更多相关结果
                         _t: Date.now()  // 缓存破坏参数
                     });
 
-                    const url = `${API_BASE}/api/law-search/multi-search?${params.toString()}`;
+                    const url = `${API_BASE}/api/law-search/search-with-completion?${params.toString()}`;
 
                     console.log('发送法律查询请求:', {
                         url: url,
                         query: query,
-                        method: 'multi_path'
+                        method: 'completion_search'
                     });
 
                     const response = await fetch(url, {
