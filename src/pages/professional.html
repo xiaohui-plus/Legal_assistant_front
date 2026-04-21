@@ -8047,10 +8047,10 @@
 
                 try {
                     // 检查缓存中是否已有结果
-                    const cacheKey = `${query}_multi_200_0.1`;
+                    const cacheKey = `${query}_multi_post_50_0.4`;
                     if (searchCache.has(cacheKey)) {
                         const cachedResult = searchCache.get(cacheKey);
-                        console.log('使用缓存的搜索结果');
+                        console.log('使用缓存的搜索结果（五重检索 - POST）');
                         displayLawResults(query, cachedResult.results, cachedResult.skipHistory);
                         if (!cachedResult.skipHistory) {
                             saveLawSearchToHistory(query, cachedResult.results);
@@ -8058,27 +8058,28 @@
                         return;
                     }
 
-                    // 构建查询参数（GET 请求），使用补全法搜索
-                    const params = new URLSearchParams({
+                    // 使用 POST 请求，使用多路召回搜索（五重检索策略）
+                    const requestData = {
                         query: query,
-                        top_k: '200',  // 增加返回结果数量
-                        min_similarity: '0.1',  // 降低相似度阈值，获取更多相关结果
-                        _t: Date.now()  // 缓存破坏参数
-                    });
+                        top_k: 50,  // 返回结果数量
+                        min_similarity: 0.4  // 相似度阈值
+                    };
 
-                    const url = `${API_BASE}/api/law-search/search-with-completion?${params.toString()}`;
+                    const url = `${API_BASE}/api/law-search/multi-search`;
 
-                    console.log('发送法律查询请求:', {
+                    console.log('发送法律查询请求（五重检索策略 - POST）:', {
                         url: url,
-                        query: query,
-                        method: 'completion_search'
+                        method: 'POST',
+                        data: requestData,
+                        strategy: '五重检索：1.关键词匹配 2.法律名称匹配 3.法律类型匹配 4.向量搜索 5.合并去重'
                     });
 
                     const response = await fetch(url, {
-                        method: 'GET',
+                        method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
-                        }
+                        },
+                        body: JSON.stringify(requestData)
                     });
 
                     console.log('响应状态:', response.status);
