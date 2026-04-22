@@ -15,6 +15,18 @@
     <!-- 必须在其他脚本之前加载配置文件，确保 window.API_BASE_URL 已定义 -->
     <script src="../config/index.js"></script>
 
+    <!-- Marked Markdown 解析库 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        // 配置 marked：将换行符转为 <br>，开启 GitHub Flavored Markdown
+        if (typeof marked !== 'undefined') {
+            marked.setOptions({
+                breaks: true,  // 换行符转为 <br>
+                gfm: true      // 支持表格、删除线等
+            });
+        }
+    </script>
+
     <!-- 登录界面样式 v2.0 - 2026-02-15 紫蓝渐变设计 -->
     <style>
         * {
@@ -534,6 +546,7 @@
             display: flex;
             flex-direction: column;
             background: #ffffff;
+            overflow: hidden;
         }
 
         /* 顶部菜单栏 */
@@ -687,7 +700,7 @@
         .chat-header {
             padding: 16px 24px;
             border-bottom: 1px solid #e8eaed;
-            display: flex;
+            display: none;
             align-items: center;
             justify-content: space-between;
         }
@@ -1347,32 +1360,30 @@
             flex: 1;
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 24px;
+            padding: 0;
             display: none;
             flex-direction: column;
             gap: 24px;
-            scrollbar-width: thin;
-            scrollbar-color: #cbd5e1 #f1f5f9;
+            scrollbar-width: none !important; /* Firefox 隐藏滚动条 */
+            -ms-overflow-style: none !important; /* IE/Edge 隐藏滚动条 */
         }
 
-        /* 自定义滚动条样式 */
+        /* 隐藏 Webkit 浏览器滚动条 */
         .messages-container::-webkit-scrollbar {
-            width: 8px;
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
         }
 
-        .messages-container::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 4px;
-        }
-
-        .messages-container::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-            transition: background 0.2s;
-        }
-
-        .messages-container::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+        /* 消息内容居中容器 */
+        .messages-inner {
+            max-width: 960px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 24px 48px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
         }
 
         .message-group {
@@ -1430,7 +1441,7 @@
             color: #1e293b;
             text-align: left;
             padding: 12px 0;
-            font-size: 24px;
+            font-size: 18px;
         }
 
         .message-group.ai {
@@ -1463,7 +1474,203 @@
             color: #374151;
             margin-left: auto;
             max-width: 70%;
-            font-size: 24px;
+            font-size: 18px;
+        }
+
+        /* Markdown 渲染样式 - 流式阶段 */
+        .streaming-text h1,
+        .streaming-text h2,
+        .streaming-text h3,
+        .streaming-text h4,
+        .streaming-text h5,
+        .streaming-text h6 {
+            margin: 0.8em 0 0.4em 0;
+            line-height: 1.3;
+            font-weight: 600;
+        }
+
+        .streaming-text h1 { font-size: 22px; }
+        .streaming-text h2 { font-size: 20px; }
+        .streaming-text h3 { font-size: 18px; }
+        .streaming-text h4 { font-size: 16px; }
+
+        .streaming-text p {
+            margin: 0.5em 0;
+            line-height: 1.8;
+        }
+
+        .streaming-text ul,
+        .streaming-text ol {
+            margin: 0.5em 0;
+            padding-left: 24px;
+        }
+
+        .streaming-text li {
+            margin: 0.3em 0;
+            line-height: 1.6;
+        }
+
+        .streaming-text pre {
+            background: #f4f4f4;
+            padding: 12px 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 0.8em 0;
+        }
+
+        .streaming-text code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+
+        .streaming-text pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .streaming-text blockquote {
+            border-left: 4px solid #e5e7eb;
+            padding-left: 16px;
+            margin: 0.8em 0;
+            color: #6b7280;
+        }
+
+        .streaming-text table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 0.8em 0;
+        }
+
+        .streaming-text th,
+        .streaming-text td {
+            border: 1px solid #d1d5db;
+            padding: 10px 14px;
+            text-align: left;
+        }
+
+        .streaming-text th {
+            background: #f9fafb;
+            font-weight: 600;
+        }
+
+        .streaming-text hr {
+            border: none;
+            border-top: 1px solid #e5e7eb;
+            margin: 1em 0;
+        }
+
+        .streaming-text strong {
+            font-weight: 600;
+        }
+
+        .streaming-text a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        .streaming-text a:hover {
+            text-decoration: underline;
+        }
+
+        /* Markdown 渲染样式 - 最终渲染（message-bubble） */
+        .message-group.ai .message-bubble h1,
+        .message-group.ai .message-bubble h2,
+        .message-group.ai .message-bubble h3,
+        .message-group.ai .message-bubble h4,
+        .message-group.ai .message-bubble h5,
+        .message-group.ai .message-bubble h6 {
+            margin: 0.8em 0 0.4em 0;
+            line-height: 1.3;
+            font-weight: 600;
+        }
+
+        .message-group.ai .message-bubble h1 { font-size: 22px; }
+        .message-group.ai .message-bubble h2 { font-size: 20px; }
+        .message-group.ai .message-bubble h3 { font-size: 18px; }
+        .message-group.ai .message-bubble h4 { font-size: 16px; }
+
+        .message-group.ai .message-bubble p {
+            margin: 0.6em 0;
+            line-height: 1.8;
+        }
+
+        .message-group.ai .message-bubble ul,
+        .message-group.ai .message-bubble ol {
+            margin: 0.6em 0;
+            padding-left: 24px;
+        }
+
+        .message-group.ai .message-bubble li {
+            margin: 0.4em 0;
+            line-height: 1.7;
+        }
+
+        .message-group.ai .message-bubble pre {
+            background: #f4f4f4;
+            padding: 14px 18px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1em 0;
+        }
+
+        .message-group.ai .message-bubble code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+
+        .message-group.ai .message-bubble pre code {
+            background: none;
+            padding: 0;
+        }
+
+        .message-group.ai .message-bubble blockquote {
+            border-left: 4px solid #e5e7eb;
+            padding-left: 16px;
+            margin: 0.8em 0;
+            color: #6b7280;
+        }
+
+        .message-group.ai .message-bubble table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1em 0;
+        }
+
+        .message-group.ai .message-bubble th,
+        .message-group.ai .message-bubble td {
+            border: 1px solid #d1d5db;
+            padding: 10px 14px;
+            text-align: left;
+        }
+
+        .message-group.ai .message-bubble th {
+            background: #f9fafb;
+            font-weight: 600;
+        }
+
+        .message-group.ai .message-bubble hr {
+            border: none;
+            border-top: 1px solid #e5e7eb;
+            margin: 1em 0;
+        }
+
+        .message-group.ai .message-bubble strong {
+            font-weight: 600;
+        }
+
+        .message-group.ai .message-bubble a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+
+        .message-group.ai .message-bubble a:hover {
+            text-decoration: underline;
         }
 
         .message-group.user .message-content {
@@ -3790,7 +3997,9 @@
 
             <!-- 消息区域 -->
             <div class="messages-container" id="messagesContainer">
-                <!-- 消息将在这里动态生成 -->
+                <div class="messages-inner" id="messagesInner">
+                    <!-- 消息将在这里动态生成 -->
+                </div>
             </div>
 
             <!-- 输入区域 -->
@@ -4127,7 +4336,8 @@
         `;
 
             pageResults.forEach((law, index) => {
-                const similarity = law.similarity || law.relevance_score || 0;
+                // Use final_score (after reranking) if available, otherwise fall back to similarity
+                const similarity = law.final_score || law.similarity || law.relevance_score / 100 || 0;
                 const similarityPercent = Math.round(similarity * 100);
                 const lawType = law.law_name && law.law_name.includes('解释') ? 'interpretation' : 'original';
                 const articleId = law.article_id || law.id || `law_${startIndex + index}`;
@@ -5207,8 +5417,6 @@
             });
         }
 
-        function saveChats() { }
-        function loadChats() { }
         function initLoginTabs() { }
         function clearAuthMessage() { }
         function showAuthMessage(text, type) { }
@@ -5522,7 +5730,6 @@
 
                 if (!message || isTyping) return;
                 
-                // 隐藏之前的打字指示器
                 hideTypingIndicator();
 
                 if (!currentChatId) {
@@ -5532,7 +5739,6 @@
                 const chat = chats.find(c => c.id === currentChatId);
                 if (!chat) return;
 
-                // 添加用户消息
                 const userMessage = {
                     id: 'msg_' + Date.now(),
                     type: 'user',
@@ -5542,7 +5748,6 @@
 
                 chat.messages.push(userMessage);
 
-                // 更新对话标题
                 if (chat.messages.filter(m => m.type === 'user').length === 1) {
                     chat.title = message.length > 20 ? message.slice(0, 20) + '...' : message;
                     document.getElementById('chatTitle').textContent = chat.title;
@@ -5552,30 +5757,25 @@
                 input.value = '';
                 autoResize(input);
 
-                // 立即显示用户消息
                 addMessageToContainer(userMessage);
                 updateChatList();
                 saveChats();
 
-                // 显示打字指示器
                 showTypingIndicator();
 
                 try {
-                    // 使用新的法律问答API
                     const token = localStorage.getItem('token');
                     const headers = {
                         'Content-Type': 'application/json'
                     };
 
-                    // 如果已登录，添加认证头
                     if (token) {
                         headers['Authorization'] = `Bearer ${token}`;
                     }
 
-                    // 获取当前选择的AI模型
-                    const selectedModel = document.getElementById('aiModelSelect')?.value || document.getElementById('welcomeAiModelSelect')?.value || 'tencent';
+                    const selectedModel = document.getElementById('aiModelSelect')?.value || document.getElementById('welcomeAiModelSelect')?.value || 'qwen';
                     
-                    const response = await fetch(`${API_BASE}/api/qa/ask`, {
+                    const response = await fetch(`${API_BASE}/api/qa/ask-stream`, {
                         method: 'POST',
                         headers: headers,
                         body: JSON.stringify({
@@ -5587,63 +5787,222 @@
                         })
                     });
 
-                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder('utf-8');
+                    let buffer = '';
+                    let fullAnswer = '';
+                    let relevantLaws = [];
+                    let similarCases = [];
+                    let qaId = null;
+                    const originalChatId = currentChatId;
+
+                    const aiMessage = {
+                        id: 'msg_' + Date.now() + '_ai',
+                        type: 'ai',
+                        content: '',
+                        timestamp: new Date(),
+                        qa_id: null,
+                        chatId: originalChatId
+                    };
+
+                    chat.messages.push(aiMessage);
+
+                    if (currentChatId === originalChatId) {
+                        addMessageToContainer(aiMessage);
+                    }
+
                     hideTypingIndicator();
 
-                    if (data.code === 200) {
-                        let aiContent = data.data.answer;
+                    // 平滑队列：ChatGPT 的秘密武器
+                    const charQueue = [];
+                    let isRendering = false;
+                    let renderTimer = null;
+                    let streamDone = false;
 
-                        // 添加相关法条
-                        if (data.data.relevant_laws && data.data.relevant_laws.length > 0) {
-                            aiContent += '\n\n📚 **相关法律依据：**\n';
-                            data.data.relevant_laws.forEach((law, index) => {
-                                aiContent += `\n${index + 1}. **${law.title}**\n${law.content}\n`;
-                            });
+                    // 获取消息气泡元素
+                    function getMessageBubble() {
+                        if (currentChatId !== originalChatId) return null;
+                        const messageElement = document.getElementById(`message-${aiMessage.id}`);
+                        if (!messageElement) return null;
+                        return messageElement.querySelector('.message-bubble');
+                    }
+
+                    // 修复流式输出中未闭合的 Markdown 标签
+                    function fixPartialMarkdown(text) {
+                        // 1. 修复未闭合的代码块 (```)
+                        const codeBlockCount = (text.match(/```/g) || []).length;
+                        if (codeBlockCount % 2 !== 0) {
+                            text += '\n```';
                         }
 
-                        // 添加相似案例
-                        if (data.data.similar_cases && data.data.similar_cases.length > 0) {
-                            aiContent += '\n\n📚 **相似案例参考：**\n';
-                            data.data.similar_cases.forEach((case_item, index) => {
-                                aiContent += `\n${index + 1}. ${case_item.question}\n相似度: ${(case_item.similarity * 100).toFixed(0)}%\n`;
-                            });
+                        // 2. 修复未闭合的加粗 (**)
+                        const boldCount = (text.match(/\*\*/g) || []).length;
+                        if (boldCount % 2 !== 0) {
+                            text += '**';
                         }
 
-                        // 保存当前聊天ID，确保结果显示在正确的聊天框
-                        const originalChatId = currentChatId;
-                        
-                        const aiMessage = {
-                            id: 'msg_' + Date.now() + '_ai',
-                            type: 'ai',
-                            content: '',
-                            timestamp: new Date(),
-                            qa_id: data.data.qa_id, // 保存问答ID用于评分
-                            chatId: originalChatId // 保存消息所属的聊天ID
-                        };
-
-                        chat.messages.push(aiMessage);
-
-                        // 先添加空的AI消息容器（只在当前聊天是原始聊天时显示）
-                        if (currentChatId === originalChatId) {
-                            addMessageToContainer(aiMessage);
+                        // 3. 修复未闭合的行内代码 (`)
+                        const tempText = text.replace(/```/g, '');
+                        const inlineCodeCount = (tempText.match(/`/g) || []).length;
+                        if (inlineCodeCount % 2 !== 0) {
+                            text += '`';
                         }
 
-                        // 打字机效果显示AI回复（始终执行，无论用户是否切换聊天）
-                        await typewriterEffect(aiMessage, aiContent);
+                        return text;
+                    }
 
-                        // 如果已登录，添加评分按钮
-                        if (token && data.data.qa_id) {
-                            addRatingButtons(aiMessage.id, data.data.qa_id);
+                    // 创建 Markdown 渲染容器（流式过程中使用）
+                    const textContainer = document.createElement('div');
+                    textContainer.className = 'streaming-text';
+                    textContainer.style.cssText = 'font-size: 20px; line-height: 1.8; word-break: break-word;';
+                    
+                    const initialBubble = getMessageBubble();
+                    if (initialBubble) {
+                        initialBubble.innerHTML = '';
+                        initialBubble.appendChild(textContainer);
+                    }
+
+                    // 定时器：固定频率消费队列（约 40字/秒）
+                    renderTimer = setInterval(() => {
+                        if (charQueue.length > 0) {
+                            const chunk = charQueue.splice(0, 3).join(''); // 每次取3个字符，更流畅
+                            
+                            // 关键：同时更新 fullAnswer 和显示
+                            fullAnswer += chunk;
+                            
+                            if (textContainer && typeof marked !== 'undefined') {
+                                // 修复未闭合标签后渲染
+                                const textToRender = fixPartialMarkdown(fullAnswer);
+                                textContainer.innerHTML = marked.parse(textToRender);
+                            } else if (textContainer) {
+                                // marked 未加载时的降级方案
+                                textContainer.textContent = fullAnswer;
+                            }
+
+                            // 自动滚动
+                            const container = document.getElementById('messagesContainer');
+                            if (container && !userIsScrolling) {
+                                container.scrollTop = container.scrollHeight;
+                            }
+
+                            // 保存到消息对象
+                            aiMessage.content = fullAnswer;
+                        } else if (streamDone) {
+                            // 队列已清空且流已结束，停止定时器并做最终渲染
+                            clearInterval(renderTimer);
+                            renderTimer = null;
+
+                            // 用 Markdown 渲染器做最终格式化
+                            const finalBubble = getMessageBubble();
+                            if (finalBubble) {
+                                if (typeof marked !== 'undefined') {
+                                    finalBubble.innerHTML = marked.parse(fullAnswer);
+                                } else {
+                                    finalBubble.innerHTML = formatMessage(fullAnswer);
+                                }
+                            }
+
+                            saveChats();
                         }
+                    }, 25); // 25ms 刷新一次
 
-                        chat.updateTime = new Date();
-                        updateChatList();
-                        saveChats();
-                    } else {
-                        throw new Error(data.message || '请求失败');
+                    // 读取流数据，塞入队列
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+
+                        buffer += decoder.decode(value, { stream: true });
+
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop() || '';
+
+                        for (const line of lines) {
+                            const trimmedLine = line.trim();
+                            if (!trimmedLine || !trimmedLine.startsWith('data: ')) continue;
+
+                            const dataStr = trimmedLine.replace('data: ', '');
+                            
+                            try {
+                                const data = JSON.parse(dataStr);
+
+                                if (data.type === 'chunk') {
+                                    // 关键：将收到的字符推入队列，而不是直接渲染
+                                    if (data.content) {
+                                        for (const char of data.content) {
+                                            charQueue.push(char);
+                                        }
+                                    }
+
+                                } else if (data.type === 'end') {
+                                    qaId = data.qa_id;
+                                    relevantLaws = data.relevant_laws || [];
+                                    similarCases = data.similar_cases || [];
+
+                                    // 构建追加内容
+                                    let appendedContent = '';
+                                    if (relevantLaws.length > 0) {
+                                        appendedContent += '\n\n📚 **相关法律依据：**\n';
+                                        relevantLaws.forEach((law, index) => {
+                                            appendedContent += `\n${index + 1}. **${law.title}**\n${law.content}\n`;
+                                        });
+                                    }
+
+                                    if (similarCases.length > 0) {
+                                        appendedContent += '\n\n📚 **相似案例参考：**\n';
+                                        similarCases.forEach((case_item, index) => {
+                                            appendedContent += `\n${index + 1}. ${case_item.question}\n相似度: ${(case_item.similarity * 100).toFixed(0)}%\n`;
+                                        });
+                                    }
+
+                                    // 将追加内容推入队列（不重复加到 fullAnswer）
+                                    if (appendedContent) {
+                                        for (const char of appendedContent) {
+                                            charQueue.push(char);
+                                        }
+                                    }
+
+                                    aiMessage.content = fullAnswer;
+                                    aiMessage.qa_id = qaId;
+
+                                    if (token && qaId) {
+                                        addRatingButtons(aiMessage.id, qaId);
+                                    }
+
+                                    chat.updateTime = new Date();
+                                    updateChatList();
+                                    saveChats();
+
+                                    // 标记流结束，等待队列清空后做最终渲染
+                                    streamDone = true;
+
+                                } else if (data.type === 'error') {
+                                    throw new Error(data.message);
+
+                                } else if (data.type === 'status') {
+                                    console.log('处理状态:', data.message);
+                                }
+
+                            } catch (parseError) {
+                                if (parseError.message && !parseError.message.includes('HTTP error')) {
+                                    console.warn('SSE数据解析失败:', dataStr, parseError);
+                                } else {
+                                    throw parseError;
+                                }
+                            }
+                        }
                     }
 
                 } catch (error) {
+                    // 清理定时器
+                    if (renderTimer) {
+                        clearInterval(renderTimer);
+                        renderTimer = null;
+                    }
+                    
                     hideTypingIndicator();
                     console.error('发送消息失败:', error);
 
@@ -5771,7 +6130,8 @@
 
             // 渲染消息
             function renderMessages(messages) {
-                const container = document.getElementById('messagesContainer');
+                const container = document.getElementById('messagesInner');
+                const scrollContainer = document.getElementById('messagesContainer');
                 container.innerHTML = '';
 
                 messages.forEach(message => {
@@ -5779,21 +6139,21 @@
                 });
 
                 // 确保滚动属性正确设置
-                container.style.overflowY = 'auto';
-                container.style.overflowX = 'hidden';
+                scrollContainer.style.overflowY = 'auto';
+                scrollContainer.style.overflowX = 'hidden';
                 
                 // 只有在用户没有手动滚动时才自动滚动到底部
                 if (!userIsScrolling) {
                     // 使用setTimeout确保DOM更新完成后再滚动
                     setTimeout(() => {
-                        container.scrollTop = container.scrollHeight;
+                        scrollContainer.scrollTop = scrollContainer.scrollHeight;
                     }, 0);
                 }
             }
 
             // 添加单个消息到容器
             function addMessageToContainer(message) {
-                const container = document.getElementById('messagesContainer');
+                const container = document.getElementById('messagesInner');
                 
                 // 确保滚动属性正确设置
                 container.style.overflowY = 'auto';
@@ -5831,36 +6191,38 @@
                 if (!userIsScrolling) {
                     // 使用setTimeout确保DOM更新完成后再滚动
                     setTimeout(() => {
-                        container.scrollTop = container.scrollHeight;
+                        const scrollContainer = document.getElementById('messagesContainer');
+                        if (scrollContainer) {
+                            scrollContainer.scrollTop = scrollContainer.scrollHeight;
+                        }
                     }, 0);
                 }
             }
 
-            // 格式化消息内容
+            // 格式化消息内容（使用 marked Markdown 渲染）
             function formatMessage(content) {
-                // 按行处理内容
+                if (typeof marked !== 'undefined') {
+                    return marked.parse(content);
+                }
+                
+                // 降级方案：手动格式化
                 const lines = content.split('\n');
                 let formattedLines = [];
                 
                 for (let line of lines) {
                     line = line.trim();
                     if (line.startsWith('### ')) {
-                        // 三级标题
                         const title = line.substring(4);
                         formattedLines.push('<h3 style="margin: 16px 0; font-size: 24px; font-weight: 600; margin-left: 32px;">' + title + '</h3>');
                     } else if (line.startsWith('## ')) {
-                        // 二级标题
                         const title = line.substring(3);
                         formattedLines.push('<h2 style="margin: 20px 0; font-size: 28px; font-weight: 600; margin-left: 16px;">' + title + '</h2>');
                     } else if (line.startsWith('# ')) {
-                        // 一级标题
                         const title = line.substring(2);
                         formattedLines.push('<h1 style="margin: 24px 0; font-size: 32px; font-weight: 700; margin-left: 0;">' + title + '</h1>');
                     } else if (line) {
-                        // 正文内容
                         formattedLines.push('<div style="margin-left: 8px; font-size: 20px;">' + line + '</div>');
                     }
-                    // 跳过空行，不添加到formattedLines中
                 }
                 
                 return formattedLines.join('<br>')
@@ -5935,60 +6297,10 @@
 
             // 打字机效果
             async function typewriterEffect(aiMessage, fullResponse) {
-                // 设置当前正在生成的消息
-                currentGeneratingMessage = aiMessage.id;
-                
-                let currentText = '';
-                
-                // 如果消息已经有内容，从当前内容继续
-                if (aiMessage.content) {
-                    currentText = aiMessage.content;
-                }
-
-                for (let i = currentText.length; i < fullResponse.length; i++) {
-                    // 检查是否应该继续执行（消息是否仍然是当前正在生成的消息）
-                    if (currentGeneratingMessage !== aiMessage.id) {
-                        // 如果不是当前正在生成的消息，保存当前进度并退出
-                        aiMessage.content = currentText;
-                        saveChats();
-                        return;
-                    }
-                    
-                    currentText += fullResponse[i];
-                    
-                    // 只有在当前聊天是消息所属的聊天时才更新UI
-                    if (currentChatId === aiMessage.chatId) {
-                        const messageElement = document.getElementById(`message-${aiMessage.id}`);
-                        if (messageElement) {
-                            const messageBubble = messageElement.querySelector('.message-bubble');
-                            if (messageBubble) {
-                                messageBubble.innerHTML = formatMessage(currentText);
-                                
-                                // 滚动到底部
-                                const container = document.getElementById('messagesContainer');
-                                if (container && !userIsScrolling) {
-                                    container.scrollTop = container.scrollHeight;
-                                }
-                            }
-                        }
-                    }
-                    
-                    // 保存当前进度
-                    aiMessage.content = currentText;
-                    saveChats();
-
-                    // 延迟
-                    await new Promise(resolve => setTimeout(resolve, 30));
-                }
-
-                // 更新最终消息内容
+                console.warn('typewriterEffect已弃用，使用真正的SSE流式替代');
                 aiMessage.content = fullResponse;
                 saveChats();
                 
-                // 清除当前正在生成的消息标志
-                currentGeneratingMessage = null;
-                
-                // 如果当前聊天是消息所属的聊天，更新UI显示完整内容
                 if (currentChatId === aiMessage.chatId) {
                     const messageElement = document.getElementById(`message-${aiMessage.id}`);
                     if (messageElement) {
@@ -5996,7 +6308,6 @@
                         if (messageBubble) {
                             messageBubble.innerHTML = formatMessage(fullResponse);
                             
-                            // 滚动到底部
                             const container = document.getElementById('messagesContainer');
                             if (container && !userIsScrolling) {
                                 container.scrollTop = container.scrollHeight;
@@ -8207,8 +8518,8 @@
             `;
 
                 pageResults.forEach((law, index) => {
-                    // 使用similarity字段，转换为百分比
-                    const similarity = law.similarity || law.relevance_score || 0;
+                    // Use final_score (after reranking) if available, otherwise fall back to similarity
+                    const similarity = law.final_score || law.similarity || law.relevance_score / 100 || 0;
                     const similarityPercent = Math.round(similarity * 100);
                     const lawType = law.law_name && law.law_name.includes('解释') ? 'interpretation' : 'original';
                     const articleId = law.article_id || law.id || `law_${startIndex + index}`;
