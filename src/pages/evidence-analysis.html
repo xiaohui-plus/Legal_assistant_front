@@ -8,6 +8,7 @@
     <!-- 必须在其他脚本之前加载配置文件，确保 window.API_BASE_URL 已定义 -->
     <script src="../config/index.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <script src="../js/evidence-effectiveness.js"></script>
     <style>
         * {
             margin: 0;
@@ -1214,74 +1215,71 @@
 
         // 评估证据效力
         async function evaluateEvidenceEffectiveness(evidenceId, caseType, evidenceType, description) {
-            // 1. 先检查缓存
-            const cached = getCachedEvaluation(evidenceId);
-            if (cached) {
-                return cached;
-            }
-
-            // 2. 尝试使用AI分析
-            const token = getToken();
-            if (token) {
-                try {
-                    // 先获取证据信息
-                    const evidence = evidenceList.find(e => e.id == evidenceId || e.id === evidenceId);
-                    if (!evidence) {
-                        console.warn('找不到证据信息:', evidenceId);
-                    }
-
-                    let textContent = description;
-
-                    // 根据证据类型进行处理
-                    if (evidence) {
-                        const fileType = evidence.file_type || evidence.fileType || '';
-                        const fileName = evidence.file_name || evidence.fileName || '';
-
-                        // 音频文件：先转文字
-                        if (fileType.includes('audio') || fileName.includes('.mp3') || fileName.includes('.wav') || fileName.includes('.ogg') || fileName.includes('.flac') || fileName.includes('.m4a')) {
-                            console.log('🎵 音频文件，使用ASR转文字');
-                            // 这里应该调用后端的ASR接口
-                            // 由于我们没有实际的文件，这里使用模拟数据
-                            textContent = evidence.ocr_result || evidence.ocrResult || evidence.result || description;
-                            if (!textContent) {
-                                textContent = '【语音转文字结果】\n这是一段模拟的音频转文字内容，包含案件相关信息。';
-                            }
-                        }
-                        // 图片文件：先OCR
-                        else if (fileType.includes('image') || fileName.includes('.jpg') || fileName.includes('.jpeg') || fileName.includes('.png') || fileName.includes('.gif') || fileName.includes('.bmp')) {
-                            console.log('🖼️ 图片文件，使用OCR提取文字');
-                            // 这里应该调用后端的OCR接口
-                            textContent = evidence.ocr_result || evidence.ocrResult || evidence.result || description;
-                            if (!textContent) {
-                                textContent = '【OCR提取结果】\n这是一段模拟的图片OCR内容，包含案件相关信息。';
-                            }
-                        }
-                        // PDF文件：使用OCR
-                        else if (fileType.includes('pdf') || fileName.includes('.pdf')) {
-                            console.log('📕 PDF文件，使用OCR提取文字');
-                            textContent = evidence.ocr_result || evidence.ocrResult || evidence.result || description;
-                            if (!textContent) {
-                                textContent = '【PDF OCR结果】\n这是一段模拟的PDF OCR内容，包含案件相关信息。';
-                            }
-                        }
-                    }
-
-                    // 使用千问API分析证据效力
-                    console.log('🤖 使用千问API分析证据效力');
-                    const aiAnalysisResult = await analyzeEvidenceWithAI(textContent, caseType, evidenceType);
-                    if (aiAnalysisResult) {
-                        // 缓存AI分析结果
-                        setCachedEvaluation(evidenceId, aiAnalysisResult);
-                        return aiAnalysisResult;
-                    }
-                } catch (error) {
-                    console.warn('AI分析失败，使用Mock数据:', error);
+            // 1. 先检查缓存（使用新版本的缓存key）
+            const NEW_CACHE_KEY = 'evidence_evaluations_v3';
+            try {
+                const cache = JSON.parse(localStorage.getItem(NEW_CACHE_KEY) || '{}');
+                const cached = cache[evidenceId];
+                if (cached) {
+                    console.log('✅ 使用缓存的评估结果:', evidenceId);
+                    return cached;
                 }
+            } catch (error) {
+                console.error('读取缓存失败:', error);
             }
 
-            // 3. 使用确定性Mock数据并缓存
+            // 2. 直接调用后端API进行AI评估（不需要登录）
+            try {
+                console.log('🤖 调用后端API进行证据效力评估');
+                const response = await fetch(`${API_BASE_URL}/api/v1/evidence/effectiveness/evaluate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        evidence_id: evidenceId,
+                        case_type: caseType,
+                        evidence_type: evidenceType,
+                        description: description || '',
+                        case_description: ''
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.code === 200) {
+                    console.log('✅ AI评估成功');
+                    // 缓存评估结果
+                    try {
+                        const cache = JSON.parse(localStorage.getItem(NEW_CACHE_KEY) || '{}');
+                        cache[evidenceId] = {
+                            ...result.data,
+                            cached_at: new Date().toISOString()
+                        };
+                        localStorage.setItem(NEW_CACHE_KEY, JSON.stringify(cache));
+                    } catch (error) {
+                        console.error('保存缓存失败:', error);
+                    }
+                    return result.data;
+                } else {
+                    console.warn('AI评估失败，使用备用评分:', result.message);
+                }
+            } catch (error) {
+                console.warn('AI评估调用失败，使用备用评分:', error);
+            }
+
+            // 3. AI不可用时使用备用评分
             const evaluation = generateMockEvaluation(evidenceId, evidenceType);
-            setCachedEvaluation(evidenceId, evaluation);
+            try {
+                const cache = JSON.parse(localStorage.getItem(NEW_CACHE_KEY) || '{}');
+                cache[evidenceId] = {
+                    ...evaluation,
+                    cached_at: new Date().toISOString()
+                };
+                localStorage.setItem(NEW_CACHE_KEY, JSON.stringify(cache));
+            } catch (error) {
+                console.error('保存缓存失败:', error);
+            }
             return evaluation;
         }
 
@@ -1459,7 +1457,7 @@
                         <span style="font-size: 16px; color: #d97706;">💡</span>
                         <div>
                             <div style="font-weight: 600; color: #92400e; margin-bottom: 4px;">评估说明</div>
-                            <div style="font-size: 14px; color: #78350f;">证据效力评估基于真实性、合法性、关联性三个维度，综合评分范围为0-100分。</div>
+                            <div style="font-size: 14px; color: #78350f;">证据效力评估基于真实性、关联性、合法性、完整度、印证力五个维度，综合评分范围为0-100分。</div>
                         </div>
                     </div>
                 </div>
@@ -5961,74 +5959,71 @@
 
         // 评估单个证据效力
         async function evaluateEvidenceEffectiveness(evidenceId, caseType, evidenceType, description) {
-            // 1. 先检查缓存
-            const cached = getCachedEvaluation(evidenceId);
-            if (cached) {
-                return cached;
-            }
-
-            // 2. 尝试使用AI分析
-            const token = getToken();
-            if (token) {
-                try {
-                    // 先获取证据信息
-                    const evidence = evidenceList.find(e => e.id == evidenceId || e.id === evidenceId);
-                    if (!evidence) {
-                        console.warn('找不到证据信息:', evidenceId);
-                    }
-
-                    let textContent = description;
-
-                    // 根据证据类型进行处理
-                    if (evidence) {
-                        const fileType = evidence.file_type || evidence.fileType || '';
-                        const fileName = evidence.file_name || evidence.fileName || '';
-
-                        // 音频文件：先转文字
-                        if (fileType.includes('audio') || fileName.includes('.mp3') || fileName.includes('.wav') || fileName.includes('.ogg') || fileName.includes('.flac') || fileName.includes('.m4a')) {
-                            console.log('🎵 音频文件，使用ASR转文字');
-                            // 这里应该调用后端的ASR接口
-                            // 由于我们没有实际的文件，这里使用模拟数据
-                            textContent = evidence.ocr_result || evidence.ocrResult || evidence.result || description;
-                            if (!textContent) {
-                                textContent = '【语音转文字结果】\n这是一段模拟的音频转文字内容，包含案件相关信息。';
-                            }
-                        }
-                        // 图片文件：先OCR
-                        else if (fileType.includes('image') || fileName.includes('.jpg') || fileName.includes('.jpeg') || fileName.includes('.png') || fileName.includes('.gif') || fileName.includes('.bmp')) {
-                            console.log('🖼️ 图片文件，使用OCR提取文字');
-                            // 这里应该调用后端的OCR接口
-                            textContent = evidence.ocr_result || evidence.ocrResult || evidence.result || description;
-                            if (!textContent) {
-                                textContent = '【OCR提取结果】\n这是一段模拟的图片OCR内容，包含案件相关信息。';
-                            }
-                        }
-                        // PDF文件：使用OCR
-                        else if (fileType.includes('pdf') || fileName.includes('.pdf')) {
-                            console.log('📕 PDF文件，使用OCR提取文字');
-                            textContent = evidence.ocr_result || evidence.ocrResult || evidence.result || description;
-                            if (!textContent) {
-                                textContent = '【PDF OCR结果】\n这是一段模拟的PDF OCR内容，包含案件相关信息。';
-                            }
-                        }
-                    }
-
-                    // 使用千问API分析证据效力
-                    console.log('🤖 使用千问API分析证据效力');
-                    const aiAnalysisResult = await analyzeEvidenceWithAI(textContent, caseType, evidenceType);
-                    if (aiAnalysisResult) {
-                        // 缓存AI分析结果
-                        setCachedEvaluation(evidenceId, aiAnalysisResult);
-                        return aiAnalysisResult;
-                    }
-                } catch (error) {
-                    console.warn('AI分析失败，使用Mock数据:', error);
+            // 1. 先检查缓存（使用新版本的缓存key）
+            const NEW_CACHE_KEY = 'evidence_evaluations_v3';
+            try {
+                const cache = JSON.parse(localStorage.getItem(NEW_CACHE_KEY) || '{}');
+                const cached = cache[evidenceId];
+                if (cached) {
+                    console.log('✅ 使用缓存的评估结果:', evidenceId);
+                    return cached;
                 }
+            } catch (error) {
+                console.error('读取缓存失败:', error);
             }
 
-            // 3. 使用确定性Mock数据并缓存
+            // 2. 直接调用后端API进行AI评估（不需要登录）
+            try {
+                console.log('🤖 调用后端API进行证据效力评估');
+                const response = await fetch(`${API_BASE_URL}/api/v1/evidence/effectiveness/evaluate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        evidence_id: evidenceId,
+                        case_type: caseType,
+                        evidence_type: evidenceType,
+                        description: description || '',
+                        case_description: ''
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.code === 200) {
+                    console.log('✅ AI评估成功');
+                    // 缓存评估结果
+                    try {
+                        const cache = JSON.parse(localStorage.getItem(NEW_CACHE_KEY) || '{}');
+                        cache[evidenceId] = {
+                            ...result.data,
+                            cached_at: new Date().toISOString()
+                        };
+                        localStorage.setItem(NEW_CACHE_KEY, JSON.stringify(cache));
+                    } catch (error) {
+                        console.error('保存缓存失败:', error);
+                    }
+                    return result.data;
+                } else {
+                    console.warn('AI评估失败，使用备用评分:', result.message);
+                }
+            } catch (error) {
+                console.warn('AI评估调用失败，使用备用评分:', error);
+            }
+
+            // 3. AI不可用时使用备用评分
             const evaluation = generateMockEvaluation(evidenceId, evidenceType);
-            setCachedEvaluation(evidenceId, evaluation);
+            try {
+                const cache = JSON.parse(localStorage.getItem(NEW_CACHE_KEY) || '{}');
+                cache[evidenceId] = {
+                    ...evaluation,
+                    cached_at: new Date().toISOString()
+                };
+                localStorage.setItem(NEW_CACHE_KEY, JSON.stringify(cache));
+            } catch (error) {
+                console.error('保存缓存失败:', error);
+            }
             return evaluation;
         }
 
@@ -6126,66 +6121,77 @@
             return 0.75 + (normalized * 0.2 * factor); // 75-95分范围
         }
 
-        // 生成稳定的Mock评估数据（基于证据ID的确定性算法）
+        // 生成稳定的Mock评估数据（基于证据ID的确定性算法）- 5维度格式
         function generateMockEvaluation(evidenceId, evidenceType) {
             // 使用确定性算法，同一证据ID始终得到相同分数
             const baseScore = generateDeterministicScore(evidenceId, 1.0);
             const authScore = generateDeterministicScore(evidenceId + '_auth', 1.02);
-            const legalScore = generateDeterministicScore(evidenceId + '_legal', 0.98);
             const relScore = generateDeterministicScore(evidenceId + '_rel', 1.05);
+            const legScore = generateDeterministicScore(evidenceId + '_leg', 0.98);
+            const compScore = generateDeterministicScore(evidenceId + '_comp', 1.0);
+            const corrScore = generateDeterministicScore(evidenceId + '_corr', 0.95);
+
+            // 转换为1-10分制
+            const authScore10 = Math.round(authScore * 10);
+            const relScore10 = Math.round(relScore * 10);
+            const legScore10 = Math.round(legScore * 10);
+            const compScore10 = Math.round(compScore * 10);
+            const corrScore10 = Math.round(corrScore * 10);
+
+            // 计算加权总分 (0-100分制)
+            const overallScore = Math.round(
+                (authScore10 * 0.30 + relScore10 * 0.25 + legScore10 * 0.20 + compScore10 * 0.15 + corrScore10 * 0.10) * 10
+            );
+
+            // 分级标签
+            let grade, emoji, description;
+            if (overallScore >= 85) {
+                grade = '效力极强'; emoji = '🟢'; description = '核心铁证';
+            } else if (overallScore >= 70) {
+                grade = '效力较强'; emoji = '🟡'; description = '有效证据，需少量补强';
+            } else if (overallScore >= 50) {
+                grade = '效力一般'; emoji = '🟠'; description = '存在瑕疵，需重点质证';
+            } else {
+                grade = '效力薄弱'; emoji = '🔴'; description = '可能属非法证据或无关联证据';
+            }
 
             return {
                 evidence_id: evidenceId,
                 evaluation_id: 'eval_' + evidenceId,
                 timestamp: new Date().toISOString(),
                 authenticity: {
-                    score: Math.min(0.95, authScore),
-                    level: authScore >= 0.9 ? '极高' : authScore >= 0.8 ? '高' : '中等',
-                    factors: ['原件保存完好', '有明确的时间戳', '签名清晰可辨'],
-                    issues: authScore < 0.8 ? ['部分内容模糊'] : [],
-                    suggestions: ['建议进行公证保全']
-                },
-                legality: {
-                    score: Math.min(0.95, legalScore),
-                    level: legalScore >= 0.9 ? '极高' : legalScore >= 0.8 ? '较高' : '中等',
-                    factors: ['取证方式合法', '未侵犯他人隐私'],
-                    issues: legalScore < 0.85 ? ['缺少公证程序'] : [],
-                    suggestions: ['建议进行证据保全公证']
+                    score: authScore10,
+                    reason: 'AI不可用，基于规则估算',
+                    weight: 0.30
                 },
                 relevance: {
-                    score: Math.min(0.95, relScore),
-                    level: relScore >= 0.9 ? '极高' : relScore >= 0.8 ? '高' : '中等',
-                    factors: ['直接证明案件事实', '与争议焦点高度相关'],
-                    issues: [],
-                    suggestions: ['结合其他证据形成证据链']
+                    score: relScore10,
+                    reason: 'AI不可用，基于规则估算',
+                    weight: 0.25
+                },
+                legality: {
+                    score: legScore10,
+                    reason: 'AI不可用，基于规则估算',
+                    weight: 0.20
+                },
+                completeness: {
+                    score: compScore10,
+                    reason: 'AI不可用，基于规则估算',
+                    weight: 0.15
+                },
+                corroboration: {
+                    score: corrScore10,
+                    reason: 'AI不可用，基于规则估算',
+                    weight: 0.10
                 },
                 overall: {
-                    score: baseScore,
-                    level: baseScore >= 0.9 ? '证据效力极高' : baseScore >= 0.8 ? '证据效力高' : '证据效力中等',
-                    grade: baseScore >= 0.9 ? 'A' : baseScore >= 0.8 ? 'B' : 'C',
-                    description: baseScore >= 0.85 ? '该证据具有较强的证明力，可作为重要依据' : '该证据具有一定证明力，建议补强'
+                    score: overallScore,
+                    grade: grade,
+                    emoji: emoji,
+                    description: description
                 },
-                risk_assessment: {
-                    level: baseScore >= 0.85 ? '低风险' : '中风险',
-                    risks: [
-                        {
-                            type: '真实性风险',
-                            probability: baseScore >= 0.85 ? '低' : '中',
-                            description: '对方可能质疑签名真实性',
-                            mitigation: '建议进行笔迹鉴定'
-                        }
-                    ]
-                },
-                improvement_suggestions: [
-                    {
-                        priority: '高',
-                        category: '合法性提升',
-                        suggestion: '进行证据保全公证',
-                        expected_improvement: '+5%',
-                        cost: '公证费约500-1000元'
-                    }
-                ],
-                _note: '评估结果基于证据特征生成，保持稳定一致'
+                summary: 'AI服务不可用，评分仅供参考',
+                evaluated_at: new Date().toISOString()
             };
         }
 
@@ -6225,8 +6231,8 @@
                     <h3 style="font-size: 18px; color: #1e40af; margin-bottom: 12px;"><img src="../images/证据库.svg" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"> 综合评估</h3>
                     <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
                         <div style="text-align: center;">
-                            <div style="font-size: 32px; font-weight: 700; color: ${getScoreColor(avgScore)}">
-                                ${(avgScore * 100).toFixed(0)}
+                            <div style="font-size: 32px; font-weight: 700; color: ${getScoreColor100(avgScore)}">
+                                ${avgScore.toFixed(0)}
                             </div>
                             <div style="font-size: 13px; color: #6b7280; margin-top: 4px;">平均分</div>
                         </div>
@@ -6236,13 +6242,13 @@
                         </div>
                         <div style="text-align: center;">
                             <div style="font-size: 32px; font-weight: 700; color: #10b981">
-                                ${results.filter(r => r.evaluation.overall.score >= 0.8).length}
+                                ${results.filter(r => r.evaluation.overall.score >= 70).length}
                             </div>
                             <div style="font-size: 13px; color: #6b7280; margin-top: 4px;">高效力</div>
                         </div>
                         <div style="text-align: center;">
                             <div style="font-size: 32px; font-weight: 700; color: #ef4444">
-                                ${results.filter(r => r.evaluation.overall.score < 0.7).length}
+                                ${results.filter(r => r.evaluation.overall.score < 50).length}
                             </div>
                             <div style="font-size: 13px; color: #6b7280; margin-top: 4px;">需补强</div>
                         </div>
@@ -6255,13 +6261,13 @@
             // 渲染每个证据的评估结果
             results.forEach(({ evidence, evaluation }) => {
                 const score = evaluation.overall.score;
-                const scoreColor = getScoreColor(score);
+                const scoreColor = getScoreColor100(score);
                 const evidenceName = evidence.file_name || evidence.fileName || evidence.name || '未知文件';
                 const evidenceType = evidence.type || '书证';
 
                 html += `
                     <div style="background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s;"
-                         onclick="showEvaluationDetail('${evaluation.evaluation_id}')"
+                         onclick="showEvaluationDetail('${evaluation.evidence_id || evaluation.evaluation_id}')"
                          onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.1)'"
                          onmouseout="this.style.boxShadow='none'">
                         <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
@@ -6276,28 +6282,30 @@
                             </div>
                             <div style="text-align: center;">
                                 <div style="font-size: 28px; font-weight: 700; color: ${scoreColor}">
-                                    ${(score * 100).toFixed(0)}
+                                    ${score.toFixed(0)}
                                 </div>
                                 <div style="font-size: 12px; color: #6b7280;">综合评分</div>
                             </div>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;">
+                        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 16px;">
                             ${renderDimensionBadge('真实性', evaluation.authenticity)}
-                            ${renderDimensionBadge('合法性', evaluation.legality)}
                             ${renderDimensionBadge('关联性', evaluation.relevance)}
+                            ${renderDimensionBadge('合法性', evaluation.legality)}
+                            ${renderDimensionBadge('完整度', evaluation.completeness)}
+                            ${renderDimensionBadge('印证力', evaluation.corroboration)}
                         </div>
 
                         <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid #e5e7eb;">
                             <div style="display: flex; align-items: center; gap: 8px;">
                                 <span style="padding: 4px 8px; background: ${scoreColor}22; color: ${scoreColor}; border-radius: 4px; font-size: 12px; font-weight: 600;">
-                                    ${evaluation.overall.grade}级
+                                    ${evaluation.overall.grade}
                                 </span>
                                 <span style="font-size: 13px; color: #6b7280;">
-                                    ${evaluation.overall.level}
+                                    ${evaluation.overall.description}
                                 </span>
                             </div>
-                            <button class="btn" style="font-size: 12px; padding: 6px 12px;" onclick="event.stopPropagation(); exportEvaluationReport('${evaluation.evaluation_id}')">
+                            <button class="btn" style="font-size: 12px; padding: 6px 12px;" onclick="event.stopPropagation(); exportEvaluationReport('${evaluation.evidence_id || evaluation.evaluation_id}')">
                                 导出报告
                             </button>
                         </div>
@@ -6311,19 +6319,37 @@
 
         // 渲染维度徽章
         function renderDimensionBadge(title, dimension) {
-            const score = (dimension.score * 100).toFixed(0);
-            const color = getScoreColor(dimension.score);
+            const score = dimension.score;
+            const color = getScoreColor10(score);
+            const level = score >= 8 ? '高' : score >= 6 ? '中' : score >= 4 ? '低' : '极低';
             return `
                 <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px; text-align: center;">
                     <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">${title}</div>
-                    <div style="font-size: 18px; font-weight: 700; color: ${color};">${score}</div>
-                    <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">${dimension.level}</div>
+                    <div style="font-size: 18px; font-weight: 700; color: ${color};">${score.toFixed(0)}</div>
+                    <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">${level}</div>
                 </div>
             `;
         }
 
-        // 根据分数获取颜色
+        // 根据1-10分制获取颜色
+        function getScoreColor10(score) {
+            if (score >= 8) return '#10b981';
+            if (score >= 6) return '#f59e0b';
+            if (score >= 4) return '#f97316';
+            return '#ef4444';
+        }
+
+        // 根据0-100分制获取颜色
+        function getScoreColor100(score) {
+            if (score >= 85) return '#10b981';
+            if (score >= 70) return '#f59e0b';
+            if (score >= 50) return '#f97316';
+            return '#ef4444';
+        }
+
+        // 兼容旧版0-1小数制的颜色函数（保留向后兼容）
         function getScoreColor(score) {
+            if (score > 1) return getScoreColor100(score);
             if (score >= 0.9) return '#10b981';
             if (score >= 0.8) return '#3b82f6';
             if (score >= 0.7) return '#f59e0b';
@@ -6343,15 +6369,118 @@
         }
 
         // 显示评估详情
-        function showEvaluationDetail(evaluationId) {
-            alert('评估详情功能开发中...\n评估ID: ' + evaluationId);
+        async function showEvaluationDetail(evaluationId) {
+            try {
+                const data = await getEvaluationDetail(evaluationId);
+                if (!data) return;
+
+                const { authenticity, relevance, legality, completeness, corroboration, overall, summary, evaluated_at } = data;
+
+                const modal = document.createElement('div');
+                modal.className = 'evidence-detail-modal';
+                modal.innerHTML = `
+                    <div class="modal-overlay" onclick="this.parentElement.remove()"></div>
+                    <div class="modal-dialog" style="max-width: 800px; max-height: 90vh;">
+                        <div class="modal-header">
+                            <h3>📊 证据效力评估详情</h3>
+                            <button class="close-btn" onclick="this.closest('.evidence-detail-modal').remove()">×</button>
+                        </div>
+                        <div class="modal-body" style="overflow-y: auto;">
+                            <div style="text-align: center; margin-bottom: 24px;">
+                                <div style="display: inline-block; position: relative;">
+                                    <svg width="160" height="160" style="transform: rotate(-90deg);">
+                                        <circle cx="80" cy="80" r="70" fill="none" stroke="#e5e7eb" stroke-width="10"/>
+                                        <circle cx="80" cy="80" r="70" fill="none" stroke="${getScoreColor(overall.score)}" 
+                                                stroke-width="10" stroke-dasharray="${overall.score * 4.4} 440" 
+                                                stroke-dashoffset="0" stroke-linecap="round"/>
+                                    </svg>
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                        <div style="font-size: 36px; font-weight: 700; color: ${getScoreColor(overall.score)};">${overall.score}</div>
+                                        <div style="font-size: 12px; color: #666;">综合评分</div>
+                                    </div>
+                                </div>
+                                <div style="margin-top: 12px; font-size: 18px; font-weight: 600;">
+                                    ${overall.emoji} ${overall.grade}
+                                </div>
+                                <div style="font-size: 14px; color: #666; margin-top: 4px;">${overall.description}</div>
+                            </div>
+
+                            <h4 style="margin-bottom: 16px; color: #333;">五维度评分详情</h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                                ${renderDimensionDetail('来源真实性', authenticity, '📄', '官方公文、公证文书、原始数据等')}
+                                ${renderDimensionDetail('内容关联度', relevance, '🔗', '直接证明核心争议焦点')}
+                                ${renderDimensionDetail('合法合规性', legality, '⚖️', '合法途径获取、程序正当')}
+                                ${renderDimensionDetail('完整与清晰度', completeness, '📋', '证据完整无缺、内容清晰')}
+                                ${renderDimensionDetail('印证潜力', corroboration, '🔍', '能与其他证据形成证据链')}
+                            </div>
+
+                            ${summary ? `
+                                <div style="background: #f0f9ff; border-left: 4px solid #0ea5e9; padding: 16px; border-radius: 0 8px 8px 0; margin-bottom: 16px;">
+                                    <h4 style="margin: 0 0 8px 0; color: #0369a1;">AI评估总结</h4>
+                                    <p style="margin: 0; color: #334155; line-height: 1.6;">${summary}</p>
+                                </div>
+                            ` : ''}
+
+                            <div style="font-size: 12px; color: #999; text-align: right;">
+                                评估时间: ${evaluated_at ? new Date(evaluated_at).toLocaleString('zh-CN') : '未知'}
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn" onclick="this.closest('.evidence-detail-modal').remove()">关闭</button>
+                            <button class="btn btn-primary" onclick="exportEvaluationReport('${evaluationId}')">导出报告</button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+            } catch (error) {
+                console.error('获取评估详情失败:', error);
+                alert('获取评估详情失败: ' + error.message);
+            }
+        }
+
+        // 渲染单个维度详情卡片
+        function renderDimensionDetail(name, dimData, icon, desc) {
+            const score = dimData.score;
+            const reason = dimData.reason || '';
+            const weight = dimData.weight ? (dimData.weight * 100).toFixed(0) : '0';
+            const color = getScoreColor10(score);
+
+            return `
+                <div style="background: #f8f9fa; border-radius: 10px; padding: 16px; border-left: 4px solid ${color};">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 14px; font-weight: 600; color: #333;">${icon} ${name}</span>
+                        <span style="font-size: 12px; color: #666;">权重 ${weight}%</span>
+                    </div>
+                    <div style="display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;">
+                        <span style="font-size: 28px; font-weight: 700; color: ${color};">${score}</span>
+                        <span style="font-size: 14px; color: #999;">/ 10</span>
+                    </div>
+                    <div style="background: #e5e7eb; border-radius: 4px; height: 6px; margin-bottom: 8px; overflow: hidden;">
+                        <div style="background: ${color}; height: 100%; width: ${score * 10}%; border-radius: 4px; transition: width 0.3s;"></div>
+                    </div>
+                    <div style="font-size: 12px; color: #666; line-height: 1.5;">${reason || desc}</div>
+                </div>
+            `;
+        }
+
+        // 根据1-10分制获取颜色
+        function getScoreColor10(score) {
+            if (score >= 8) return '#10b981';
+            if (score >= 6) return '#f59e0b';
+            if (score >= 4) return '#f97316';
+            return '#ef4444';
+        }
+
+        // 根据0-100分制获取颜色
+        function getScoreColor(score) {
+            if (score >= 85) return '#10b981';
+            if (score >= 70) return '#f59e0b';
+            if (score >= 50) return '#f97316';
+            return '#ef4444';
         }
 
         // 导出评估报告
-        function exportEvaluationReport(evaluationId) {
-            alert('报告导出功能开发中...\n评估ID: ' + evaluationId);
-        }
-
         // 加载风险评估
         async function loadRiskAssessment() {
             const chartCanvas = document.getElementById('radarChart');
@@ -6520,6 +6649,16 @@
 
         // 页面加载完成
         window.addEventListener('load', async () => {
+            // 清除旧版本的评估缓存（强制使用新的5维度评分系统）
+            try {
+                localStorage.removeItem('evidence_evaluations_v2');
+                localStorage.removeItem('evidence_evaluations_v1');
+                localStorage.removeItem('ai_analysis_cache');
+                console.log('🗑️ 已清除旧版本评估缓存，使用新的5维度评分系统');
+            } catch (error) {
+                console.error('清除旧缓存失败:', error);
+            }
+            
             // 先验证设备指纹一致性
             await validateDeviceFingerprint();
             
@@ -6578,15 +6717,28 @@
             const currentTime = evidence.upload_time || evidence.uploadedAt || evidence.uploaded_at || 
                 evidence.created_at || evidence.createdAt || evidence.uploadTime || new Date().toISOString();
             
-            // 格式化为本地时间字符串
-            let formattedTime = currentTime;
-            if (currentTime.includes('T')) {
-                try {
-                    const date = new Date(currentTime);
-                    formattedTime = date.toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
-                } catch (e) {
-                    console.warn('时间格式转换失败:', currentTime);
+            // 格式化为 datetime-local 需要的格式 (YYYY-MM-DDTHH:mm)
+            let formattedTime = '';
+            try {
+                const date = new Date(currentTime);
+                if (!isNaN(date.getTime())) {
+                    // 转换为本地时间的 YYYY-MM-DDTHH:mm 格式
+                    const year = date.getFullYear();
+                    const month = String(date.getMonth() + 1).padStart(2, '0');
+                    const day = String(date.getDate()).padStart(2, '0');
+                    const hours = String(date.getHours()).padStart(2, '0');
+                    const minutes = String(date.getMinutes()).padStart(2, '0');
+                    formattedTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+                } else {
+                    // 如果解析失败，使用当前时间
+                    const now = new Date();
+                    formattedTime = now.toISOString().slice(0, 16);
                 }
+            } catch (e) {
+                console.warn('时间格式转换失败:', currentTime, e);
+                // 使用当前时间作为默认值
+                const now = new Date();
+                formattedTime = now.toISOString().slice(0, 16);
             }
             
             // 创建修改时间的模态框

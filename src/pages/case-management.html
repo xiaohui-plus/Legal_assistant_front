@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>案件管理 - 法律AI助手</title>
+
+    <link rel="stylesheet" href="../css/global-styles.css">
+    <link rel="stylesheet" href="../css/case-management.css">
+
+    <script src="../js/api-client.js"></script>
+    <script src="../js/api-services.js"></script>
+    <script src="../js/ui-components.js"></script>
+</head>
+
+<body>
+    <div class="case-management-container">
+        <div class="page-header">
+            <div class="header-left">
+                <h1>案件管理</h1>
+                <p class="page-desc">管理您的所有案件，按案件组织证据材料</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn-primary" onclick="showCreateCaseModal()">
+                    <span>+</span> 新建案件
+                </button>
+            </div>
+        </div>
+
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-value" id="totalCases">0</span>
+                <span class="stat-label">全部案件</span>
+            </div>
+            <div class="stat-item active">
+                <span class="stat-value" id="activeCases">0</span>
+                <span class="stat-label">进行中</span>
+            </div>
+            <div class="stat-item closed">
+                <span class="stat-value" id="closedCases">0</span>
+                <span class="stat-label">已结案</span>
+            </div>
+            <div class="stat-item evidence">
+                <span class="stat-value" id="totalEvidence">0</span>
+                <span class="stat-label">证据总数</span>
+            </div>
+        </div>
+
+        <div class="filter-bar">
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-status="" onclick="filterByStatus('', this)">全部</button>
+                <button class="filter-tab" data-status="active" onclick="filterByStatus('active', this)">进行中</button>
+                <button class="filter-tab" data-status="closed" onclick="filterByStatus('closed', this)">已结案</button>
+                <button class="filter-tab" data-status="archived" onclick="filterByStatus('archived', this)">已归档</button>
+            </div>
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="搜索案件..." oninput="searchCases(this.value)">
+                <span class="search-icon">🔍</span>
+            </div>
+        </div>
+
+        <div class="case-list" id="caseList">
+            <div class="empty-state">
+                <div class="empty-icon">📁</div>
+                <p>暂无案件</p>
+                <button class="btn-primary" onclick="showCreateCaseModal()">创建第一个案件</button>
+            </div>
+        </div>
+
+        <div class="pagination" id="pagination" style="display: none;">
+            <button class="page-btn" onclick="goToPage('prev')">上一页</button>
+            <span class="page-info" id="pageInfo">1 / 1</span>
+            <button class="page-btn" onclick="goToPage('next')">下一页</button>
+        </div>
+    </div>
+
+    <div class="modal" id="createCaseModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">新建案件</h3>
+                <button class="close-btn" onclick="closeCreateCaseModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="caseForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>案件标题 *</label>
+                            <input type="text" id="caseTitle" required placeholder="例如：张三民间借贷纠纷案">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>案件类型 *</label>
+                            <select id="caseType" required>
+                                <option value="">请选择案件类型</option>
+                                <option value="民间借贷">民间借贷</option>
+                                <option value="劳动争议">劳动争议</option>
+                                <option value="合同纠纷">合同纠纷</option>
+                                <option value="侵权责任">侵权责任</option>
+                                <option value="婚姻家庭">婚姻家庭</option>
+                                <option value="房屋买卖">房屋买卖</option>
+                                <option value="交通事故">交通事故</option>
+                                <option value="知识产权">知识产权</option>
+                                <option value="公司纠纷">公司纠纷</option>
+                                <option value="其他">其他</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>案件编号</label>
+                            <input type="text" id="caseNumber" placeholder="可选，如：(2024)京01民初123号">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>对方当事人</label>
+                            <input type="text" id="opposingParty" placeholder="可选">
+                        </div>
+                        <div class="form-group">
+                            <label>受理法院</label>
+                            <input type="text" id="court" placeholder="可选">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>立案日期</label>
+                            <input type="date" id="filingDate">
+                        </div>
+                        <div class="form-group">
+                            <label>截止日期</label>
+                            <input type="date" id="deadline">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>案件描述</label>
+                        <textarea id="caseDescription" rows="3" placeholder="简要描述案件情况..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>标签</label>
+                        <input type="text" id="caseTags" placeholder="多个标签用逗号分隔，如：紧急,重要">
+                    </div>
+                    <div class="form-group">
+                        <label>备注</label>
+                        <textarea id="caseNotes" rows="2" placeholder="其他备注信息..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" onclick="closeCreateCaseModal()">取消</button>
+                        <button type="submit" class="btn-primary" id="submitBtn">创建案件</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="caseDetailModal" style="display: none;">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="detailTitle">案件详情</h3>
+                <button class="close-btn" onclick="closeCaseDetailModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="case-detail-content" id="caseDetailContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p id="loadingText">处理中...</p>
+    </div>
+
+    <script src="../js/case-management.js"></script>
+</body>
+
+</html>

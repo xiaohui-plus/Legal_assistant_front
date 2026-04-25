@@ -24,6 +24,13 @@
         <div class="chain-header">
             <div class="header-left">
                 <h1>🔗 证据链闭环管理</h1>
+                <div class="case-selector">
+                    <label>当前案件：</label>
+                    <select id="caseSelector" onchange="switchCase(this.value)">
+                        <option value="">请选择案件</option>
+                    </select>
+                    <button class="btn-small" onclick="window.location.href='/pages/case-management.html'">管理案件</button>
+                </div>
                 <div class="case-info">
                     <span class="case-id" id="caseId">案件ID: -</span>
                     <span class="case-title" id="caseTitle">案件名称: -</span>
@@ -150,12 +157,10 @@
             <div class="modal-body">
                 <form id="uploadForm">
                     <div class="form-group">
-                        <label>案件ID *</label>
-                        <input type="text" id="uploadCaseId" required placeholder="例如: case_123">
-                    </div>
-                    <div class="form-group">
-                        <label>案件标题 *</label>
-                        <input type="text" id="uploadCaseTitle" required placeholder="例如: 劳动纠纷案">
+                        <label>选择案件 *</label>
+                        <select id="uploadCaseSelector" required>
+                            <option value="">请选择案件</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label>选择文件 *</label>

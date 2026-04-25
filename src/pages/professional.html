@@ -339,9 +339,32 @@
             overflow: hidden;
         }
 
-        /* 隐藏可能的滚动条角落 */
-        ::-webkit-scrollbar-corner {
-            background: transparent;
+        /* 全局隐藏所有滚动条 */
+        * {
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
+        }
+        
+        *::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            background: transparent !important;
+        }
+        
+        *::-webkit-scrollbar-track {
+            display: none !important;
+            background: transparent !important;
+        }
+        
+        *::-webkit-scrollbar-thumb {
+            display: none !important;
+            background: transparent !important;
+        }
+        
+        *::-webkit-scrollbar-corner {
+            display: none !important;
+            background: transparent !important;
         }
 
         .sidebar-footer-title {
@@ -808,6 +831,48 @@
 
         .back-text {
             font-size: 13px;
+        }
+        
+        /* 回到底部按钮样式 */
+        .back-to-bottom-btn {
+            position: fixed;
+            bottom: 140px;
+            right: 60px;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 16px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            color: #fbbf24;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 4px 16px rgba(30, 58, 138, 0.4);
+            transition: all 0.3s ease;
+            z-index: 100;
+            animation: fadeInUp 0.3s ease;
+        }
+        
+        .back-to-bottom-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(30, 58, 138, 0.5);
+        }
+        
+        .back-to-bottom-btn svg {
+            transform: rotate(180deg);
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* 欢迎界面 - 浅蓝色基底风格 */
@@ -1364,8 +1429,8 @@
             display: none;
             flex-direction: column;
             gap: 24px;
-            scrollbar-width: none !important; /* Firefox 隐藏滚动条 */
-            -ms-overflow-style: none !important; /* IE/Edge 隐藏滚动条 */
+            scrollbar-width: none !important;
+            -ms-overflow-style: none !important;
         }
 
         /* 隐藏 Webkit 浏览器滚动条 */
@@ -1373,6 +1438,22 @@
             display: none !important;
             width: 0 !important;
             height: 0 !important;
+            background: transparent !important;
+        }
+
+        .messages-container::-webkit-scrollbar-track {
+            display: none !important;
+            background: transparent !important;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            display: none !important;
+            background: transparent !important;
+        }
+
+        .messages-container::-webkit-scrollbar-corner {
+            display: none !important;
+            background: transparent !important;
         }
 
         /* 消息内容居中容器 */
@@ -1423,13 +1504,13 @@
         .message-content {
             flex: 1;
             max-width: 100%;
-            font-size: 24px;
+            font-size: 14px;
         }
 
         .message-bubble {
             padding: 12px 16px;
             border-radius: 16px;
-            font-size: 20px;
+            font-size: 14px;
             line-height: 1.4;
             word-wrap: break-word;
             position: relative;
@@ -1441,7 +1522,7 @@
             color: #1e293b;
             text-align: left;
             padding: 12px 0;
-            font-size: 18px;
+            font-size: 14px;
         }
 
         .message-group.ai {
@@ -1474,7 +1555,7 @@
             color: #374151;
             margin-left: auto;
             max-width: 70%;
-            font-size: 18px;
+            font-size: 14px;
         }
 
         /* Markdown 渲染样式 - 流式阶段 */
@@ -1489,10 +1570,10 @@
             font-weight: 600;
         }
 
-        .streaming-text h1 { font-size: 22px; }
-        .streaming-text h2 { font-size: 20px; }
-        .streaming-text h3 { font-size: 18px; }
-        .streaming-text h4 { font-size: 16px; }
+        .streaming-text h1 { font-size: 18px; }
+        .streaming-text h2 { font-size: 16px; }
+        .streaming-text h3 { font-size: 14px; }
+        .streaming-text h4 { font-size: 12px; }
 
         .streaming-text p {
             margin: 0.5em 0;
@@ -1587,10 +1668,10 @@
             font-weight: 600;
         }
 
-        .message-group.ai .message-bubble h1 { font-size: 22px; }
-        .message-group.ai .message-bubble h2 { font-size: 20px; }
-        .message-group.ai .message-bubble h3 { font-size: 18px; }
-        .message-group.ai .message-bubble h4 { font-size: 16px; }
+        .message-group.ai .message-bubble h1 { font-size: 18px; }
+        .message-group.ai .message-bubble h2 { font-size: 16px; }
+        .message-group.ai .message-bubble h3 { font-size: 14px; }
+        .message-group.ai .message-bubble h4 { font-size: 12px; }
 
         .message-group.ai .message-bubble p {
             margin: 0.6em 0;
@@ -1764,7 +1845,7 @@
 
         /* 输入区域 */
         .input-area {
-            padding: 20px 24px 24px 24px;
+            padding: 20px 48px 24px 48px;
             border-top: 1px solid #e8eaed;
             background: #ffffff;
             display: none;
@@ -1796,8 +1877,9 @@
         .input-container {
             display: flex;
             align-items: flex-end;
-            max-width: 100%;
-            padding: 0 8px;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0;
         }
 
         .input-wrapper {
@@ -4000,16 +4082,19 @@
                 <div class="messages-inner" id="messagesInner">
                     <!-- 消息将在这里动态生成 -->
                 </div>
+                <!-- 底部锚点：用于 scrollIntoView 滚动定位 -->
+                <div id="scrollAnchor" style="height: 1px; width: 1px;"></div>
+                <!-- 回到底部按钮 -->
+                <button id="backToBottomBtn" class="back-to-bottom-btn" onclick="scrollToBottom('smooth')" style="display: none;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                    <span>新消息</span>
+                </button>
             </div>
 
             <!-- 输入区域 -->
             <div class="input-area" id="inputArea">
-                <div class="quick-questions" id="quickQuestions">
-                    <div class="quick-question" onclick="sendQuickQuestion('劳动合同试用期最长多久？')">劳动合同问题</div>
-                    <div class="quick-question" onclick="sendQuickQuestion('离婚需要什么手续？')">离婚手续</div>
-                    <div class="quick-question" onclick="sendQuickQuestion('交通事故如何处理？')">交通事故</div>
-                    <div class="quick-question" onclick="sendQuickQuestion('房屋租赁纠纷怎么办？')">租赁纠纷</div>
-                </div>
                 <div class="input-container">
                     <div class="input-wrapper">
                         <div class="message-input-container">
@@ -4448,13 +4533,52 @@
         
         // 用户滚动状态标志
         let userIsScrolling = false;
-        // 记录上次滚动位置，用于检测滚动方向
-        let lastScrollTop = 0;
         
         // 跟踪当前正在生成的消息，用于处理切换聊天时的状态保存
         let currentGeneratingMessage = null;
         // 保存各聊天的打字状态
         const typingStates = {};
+        
+        // 滚动到底部（使用 scrollIntoView 锚点方法）
+        function scrollToBottom(behavior = 'smooth') {
+            const container = document.getElementById('messagesContainer');
+            if (!container) return;
+            
+            // 确保容器可见且可滚动
+            if (container.style.display === 'none' || container.style.display === '') {
+                // 如果容器不可见，延迟执行
+                setTimeout(() => scrollToBottom(behavior), 100);
+                return;
+            }
+            
+            // 直接设置 scrollTop，更可靠
+            if (behavior === 'auto') {
+                container.scrollTop = container.scrollHeight;
+            } else {
+                container.scrollTo({
+                    top: container.scrollHeight,
+                    behavior: behavior
+                });
+            }
+            
+            hideBackToBottomBtn();
+        }
+        
+        // 滚动到指定消息元素（让消息出现在可视区域顶部）
+        function scrollToMessage(messageId, behavior = 'smooth') {
+            const messageEl = document.getElementById(`message-${messageId}`);
+            if (messageEl) {
+                messageEl.scrollIntoView({ behavior: behavior, block: 'start' });
+            }
+        }
+        
+        // 判断是否在底部（允许30px误差）
+        function isAtBottom() {
+            const container = document.getElementById('messagesContainer');
+            if (!container) return true;
+            const { scrollTop, scrollHeight, clientHeight } = container;
+            return scrollHeight - scrollTop - clientHeight < 30;
+        }
 
         // 初始化聊天列表滚动监听（懒加载）
         function initChatListScroll() {
@@ -4478,29 +4602,35 @@
             const messagesContainer = document.getElementById('messagesContainer');
             if (!messagesContainer) return;
             
-            // 立即响应滚动事件，不使用防抖
             messagesContainer.addEventListener('scroll', () => {
-                const scrollTop = messagesContainer.scrollTop;
-                const scrollHeight = messagesContainer.scrollHeight;
-                const clientHeight = messagesContainer.clientHeight;
+                const { scrollTop, scrollHeight, clientHeight } = messagesContainer;
+                const threshold = 30; // 容错阈值，距离底部30px以内都算作"在底部"
                 
-                // 检测滚动方向：上滑（scrollTop < lastScrollTop）
-                const isScrollingUp = scrollTop < lastScrollTop;
-                
-                // 如果用户上滑，立即停止自动下滑
-                if (isScrollingUp) {
-                    userIsScrolling = true;
+                // 判断当前是否滚动到了底部
+                if (scrollHeight - scrollTop - clientHeight <= threshold) {
+                    userIsScrolling = false; // 用户在底部，恢复自动跟随
+                    hideBackToBottomBtn();
+                } else {
+                    userIsScrolling = true; // 用户不在底部，停止自动跟随
+                    showBackToBottomBtn();
                 }
-                
-                // 如果用户滚动到接近底部（5px以内），恢复自动下滑
-                const isAtBottom = scrollTop + clientHeight >= scrollHeight - 5;
-                if (isAtBottom) {
-                    userIsScrolling = false;
-                }
-                
-                // 更新上次滚动位置
-                lastScrollTop = scrollTop;
             });
+        }
+        
+        // 显示回到底部按钮
+        function showBackToBottomBtn() {
+            const btn = document.getElementById('backToBottomBtn');
+            if (btn) {
+                btn.style.display = 'flex';
+            }
+        }
+        
+        // 隐藏回到底部按钮
+        function hideBackToBottomBtn() {
+            const btn = document.getElementById('backToBottomBtn');
+            if (btn) {
+                btn.style.display = 'none';
+            }
         }
 
         // 防抖函数
@@ -5667,7 +5797,6 @@
                 
                 // 重置滚动状态，确保切换聊天后能正常加载
                 userIsScrolling = false;
-                lastScrollTop = 0;
                 
                 // 显示消息容器并确保滚动属性正确
                 const messagesContainer = document.getElementById('messagesContainer');
@@ -5677,11 +5806,11 @@
                 
                 document.getElementById('inputArea').style.display = 'block';
 
-                // 显示聊天标题栏 - 同时移除hidden类并设置display样式
+                // 隐藏聊天标题栏
                 const chatHeader = document.querySelector('.chat-header');
                 if (chatHeader) {
-                    chatHeader.classList.remove('hidden');
-                    chatHeader.style.display = 'flex';
+                    chatHeader.classList.add('hidden');
+                    chatHeader.style.display = 'none';
                 }
 
                 // 更新发送按钮状态 - 确保聊天界面显示时按钮状态正确
@@ -5758,6 +5887,12 @@
                 autoResize(input);
 
                 addMessageToContainer(userMessage);
+                
+                // 需求2：发送问题后，将问题滚动到可视区域顶部
+                setTimeout(() => {
+                    scrollToMessage(userMessage.id, 'smooth');
+                }, 100);
+                
                 updateChatList();
                 saveChats();
 
@@ -5815,8 +5950,6 @@
                         addMessageToContainer(aiMessage);
                     }
 
-                    hideTypingIndicator();
-
                     // 平滑队列：ChatGPT 的秘密武器
                     const charQueue = [];
                     let isRendering = false;
@@ -5858,17 +5991,42 @@
                     // 创建 Markdown 渲染容器（流式过程中使用）
                     const textContainer = document.createElement('div');
                     textContainer.className = 'streaming-text';
-                    textContainer.style.cssText = 'font-size: 20px; line-height: 1.8; word-break: break-word;';
+                    textContainer.style.cssText = 'font-size: 14px; line-height: 1.8; word-break: break-word;';
                     
-                    const initialBubble = getMessageBubble();
-                    if (initialBubble) {
-                        initialBubble.innerHTML = '';
-                        initialBubble.appendChild(textContainer);
+                    // 重试机制：确保 textContainer 能正确附加到 DOM
+                    let textContainerAttached = false;
+                    function attachTextContainer() {
+                        if (textContainerAttached) return true;
+                        const bubble = getMessageBubble();
+                        if (bubble) {
+                            bubble.innerHTML = '';
+                            bubble.appendChild(textContainer);
+                            textContainerAttached = true;
+                            return true;
+                        }
+                        return false;
+                    }
+                    
+                    // 立即尝试附加
+                    if (!attachTextContainer()) {
+                        // 如果失败，在定时器中重试
+                        const attachRetry = setInterval(() => {
+                            if (attachTextContainer()) {
+                                clearInterval(attachRetry);
+                            }
+                        }, 50);
                     }
 
                     // 定时器：固定频率消费队列（约 40字/秒）
+                    let hasStartedRendering = false;
                     renderTimer = setInterval(() => {
                         if (charQueue.length > 0) {
+                            // 第一次渲染时隐藏"正在思考"
+                            if (!hasStartedRendering) {
+                                hideTypingIndicator();
+                                hasStartedRendering = true;
+                            }
+                            
                             const chunk = charQueue.splice(0, 3).join(''); // 每次取3个字符，更流畅
                             
                             // 关键：同时更新 fullAnswer 和显示
@@ -5883,10 +6041,9 @@
                                 textContainer.textContent = fullAnswer;
                             }
 
-                            // 自动滚动
-                            const container = document.getElementById('messagesContainer');
-                            if (container && !userIsScrolling) {
-                                container.scrollTop = container.scrollHeight;
+                            // 自动滚动（流式输出时持续跟随）
+                            if (!userIsScrolling) {
+                                scrollToBottom('auto');
                             }
 
                             // 保存到消息对象
@@ -6135,24 +6292,28 @@
                 container.innerHTML = '';
 
                 messages.forEach(message => {
-                    addMessageToContainer(message);
+                    addMessageToContainer(message, false);
                 });
 
                 // 确保滚动属性正确设置
                 scrollContainer.style.overflowY = 'auto';
                 scrollContainer.style.overflowX = 'hidden';
                 
-                // 只有在用户没有手动滚动时才自动滚动到底部
-                if (!userIsScrolling) {
-                    // 使用setTimeout确保DOM更新完成后再滚动
-                    setTimeout(() => {
-                        scrollContainer.scrollTop = scrollContainer.scrollHeight;
-                    }, 0);
-                }
+                // 需求1：打开历史记录时，等待DOM渲染完成后滚动到底部
+                // 使用双重 requestAnimationFrame 确保 DOM 完全渲染
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        const container = document.getElementById('messagesContainer');
+                        if (container && container.style.display !== 'none') {
+                            container.scrollTop = container.scrollHeight;
+                            hideBackToBottomBtn();
+                        }
+                    });
+                });
             }
 
             // 添加单个消息到容器
-            function addMessageToContainer(message) {
+            function addMessageToContainer(message, autoScroll = true) {
                 const container = document.getElementById('messagesInner');
                 
                 // 确保滚动属性正确设置
@@ -6187,15 +6348,10 @@
                 messageGroup.appendChild(messageContent);
 
                 container.appendChild(messageGroup);
-                // 只有在用户没有手动滚动时才自动滚动到底部
-                if (!userIsScrolling) {
-                    // 使用setTimeout确保DOM更新完成后再滚动
-                    setTimeout(() => {
-                        const scrollContainer = document.getElementById('messagesContainer');
-                        if (scrollContainer) {
-                            scrollContainer.scrollTop = scrollContainer.scrollHeight;
-                        }
-                    }, 0);
+                
+                // 需求2：添加消息后自动滚动到底部（仅当用户在底部时）
+                if (autoScroll && !userIsScrolling) {
+                    scrollToBottom('smooth');
                 }
             }
 
@@ -6249,7 +6405,7 @@
                 // 保存当前聊天的打字状态
                 typingStates[currentChatId] = true;
                 
-                const container = document.getElementById('messagesContainer');
+                const container = document.getElementById('messagesInner');
 
                 const messageGroup = document.createElement('div');
                 messageGroup.className = 'message-group ai';
@@ -6279,7 +6435,7 @@
 
                 // 只有在用户没有手动滚动时才自动滚动到底部
                 if (!userIsScrolling) {
-                    container.scrollTop = container.scrollHeight;
+                    scrollToBottom('smooth');
                 }
             }
 
@@ -6308,9 +6464,8 @@
                         if (messageBubble) {
                             messageBubble.innerHTML = formatMessage(fullResponse);
                             
-                            const container = document.getElementById('messagesContainer');
-                            if (container && !userIsScrolling) {
-                                container.scrollTop = container.scrollHeight;
+                            if (!userIsScrolling) {
+                                scrollToBottom('auto');
                             }
                         }
                     }

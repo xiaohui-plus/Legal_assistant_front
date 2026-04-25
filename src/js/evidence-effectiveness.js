@@ -1,5 +1,6 @@
 // 证据效力分析功能
-// API_BASE_URL �?config.js 中获�?
+// API_BASE_URL 从 config.js 中获取
+
 // 获取Token
 function getToken() {
     return localStorage.getItem('token') || localStorage.getItem('access_token');
@@ -7,7 +8,7 @@ function getToken() {
 
 // 处理401错误（登录过期）
 function handle401Error() {
-    alert('登录已过期，请重新登�?);
+    alert('登录已过期，请重新登录');
     localStorage.removeItem('token');
     localStorage.removeItem('access_token');
     localStorage.removeItem('user_info');
@@ -33,7 +34,8 @@ function showMessage(message, type = 'info') {
     }, 3000);
 }
 
-// 显示加载状�?function showLoading(text = '处理�?..') {
+// 显示加载状态
+function showLoading(text = '处理中...') {
     const overlay = document.getElementById('loadingOverlay');
     const loadingText = document.getElementById('loadingText');
     if (overlay) {
@@ -42,7 +44,8 @@ function showMessage(message, type = 'info') {
     }
 }
 
-// 隐藏加载状�?function hideLoading() {
+// 隐藏加载状态
+function hideLoading() {
     const overlay = document.getElementById('loadingOverlay');
     if (overlay) {
         overlay.style.display = 'none';
@@ -58,36 +61,25 @@ function showMessage(message, type = 'info') {
  * @param {string} evidenceType - 证据类型
  * @param {string} description - 证据描述
  */
-async function evaluateEvidence(evidenceId, caseType, evidenceType = '', description = '') {
-    const token = getToken();
-    if (!token) {
-        showMessage('请先登录', 'error');
-        return null;
-    }
-
+async function evaluateEvidence(evidenceId, caseType, evidenceType = '', description = '', caseDescription = '') {
     showLoading('正在评估证据效力...');
 
     try {
         const response = await fetch(`${API_BASE_URL}/api/v1/evidence/effectiveness/evaluate`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 evidence_id: evidenceId,
                 case_type: caseType,
                 evidence_type: evidenceType,
-                description: description
+                description: description,
+                case_description: caseDescription
             })
         });
 
         hideLoading();
-
-        if (response.status === 401) {
-            handle401Error();
-            return null;
-        }
 
         const result = await response.json();
 
@@ -108,44 +100,34 @@ async function evaluateEvidence(evidenceId, caseType, evidenceType = '', descrip
 
 /**
  * 批量证据效力评估
- * @param {string} caseId - 案件ID
- * @param {string} caseType - 案件类型
- * @param {Array} evidenceList - 证据列表
+ * @param {Array} evidenceList - 证据列表，每个包含 evidence_id, case_type, evidence_type, description, case_description
  */
-async function batchEvaluateEvidence(caseId, caseType, evidenceList) {
-    const token = getToken();
-    if (!token) {
-        showMessage('请先登录', 'error');
-        return null;
-    }
-
+async function batchEvaluateEvidence(evidenceList) {
     showLoading('正在批量评估证据效力...');
 
     try {
         const response = await fetch(`${API_BASE_URL}/api/v1/evidence/effectiveness/batch-evaluate`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                case_id: caseId,
-                case_type: caseType,
-                evidence_list: evidenceList
+                evidences: evidenceList.map(ev => ({
+                    evidence_id: ev.evidence_id,
+                    case_type: ev.case_type,
+                    evidence_type: ev.evidence_type,
+                    description: ev.description,
+                    case_description: ev.case_description || ''
+                }))
             })
         });
 
         hideLoading();
 
-        if (response.status === 401) {
-            handle401Error();
-            return null;
-        }
-
         const result = await response.json();
 
         if (response.ok && result.code === 200) {
-            showMessage(`批量评估完成，成功评�?${result.data.evaluated_count} 个证据`, 'success');
+            showMessage(`批量评估完成，成功评估 ${result.data.length} 个证据`, 'success');
             return result.data;
         } else {
             showMessage(result.message || '批量评估失败', 'error');
@@ -164,23 +146,8 @@ async function batchEvaluateEvidence(caseId, caseType, evidenceList) {
  * @param {string} evaluationId - 评估ID
  */
 async function getEvaluationDetail(evaluationId) {
-    const token = getToken();
-    if (!token) {
-        showMessage('请先登录', 'error');
-        return null;
-    }
-
     try {
-        const response = await fetch(`${API_BASE_URL}/api/v1/evidence/effectiveness/${evaluationId}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-
-        if (response.status === 401) {
-            handle401Error();
-            return null;
-        }
+        const response = await fetch(`${API_BASE_URL}/api/v1/evidence/effectiveness/${evaluationId}`);
 
         const result = await response.json();
 
@@ -240,20 +207,13 @@ async function getEvaluationHistory(evidenceId) {
  * @param {Array} evidenceIds - 证据ID列表
  */
 async function compareEvidence(evidenceIds) {
-    const token = getToken();
-    if (!token) {
-        showMessage('请先登录', 'error');
-        return null;
-    }
-
     showLoading('正在对比分析...');
 
     try {
         const response = await fetch(`${API_BASE_URL}/api/v1/evidence/effectiveness/compare`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 evidence_ids: evidenceIds
@@ -261,11 +221,6 @@ async function compareEvidence(evidenceIds) {
         });
 
         hideLoading();
-
-        if (response.status === 401) {
-            handle401Error();
-            return null;
-        }
 
         const result = await response.json();
 
@@ -292,20 +247,13 @@ async function compareEvidence(evidenceIds) {
  * @param {boolean} includeCharts - 是否包含图表
  */
 async function exportEvaluationReport(evaluationId, format = 'pdf', includeSuggestions = true, includeCharts = true) {
-    const token = getToken();
-    if (!token) {
-        showMessage('请先登录', 'error');
-        return null;
-    }
-
     showLoading('正在生成报告...');
 
     try {
         const response = await fetch(`${API_BASE_URL}/api/v1/evidence/effectiveness/${evaluationId}/export`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 format: format,
@@ -316,16 +264,11 @@ async function exportEvaluationReport(evaluationId, format = 'pdf', includeSugge
 
         hideLoading();
 
-        if (response.status === 401) {
-            handle401Error();
-            return null;
-        }
-
         const result = await response.json();
 
         if (response.ok && result.code === 200) {
-            showMessage('报告生成中，请稍�?..', 'info');
-            // 轮询检查报告生成状�?            pollExportStatus(result.data.task_id);
+            showMessage('报告生成中，请稍后...', 'info');
+            pollExportStatus(result.data.task_id);
             return result.data;
         } else {
             showMessage(result.message || '导出失败', 'error');
@@ -340,32 +283,28 @@ async function exportEvaluationReport(evaluationId, format = 'pdf', includeSugge
 }
 
 /**
- * 轮询导出状�? * @param {string} taskId - 任务ID
+ * 轮询导出状态
+ * @param {string} taskId - 任务ID
  */
 async function pollExportStatus(taskId) {
-    const token = getToken();
     let attempts = 0;
-    const maxAttempts = 30; // 最多轮�?0次（30秒）
+    const maxAttempts = 30;
 
     const checkStatus = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/v1/evidence/effectiveness/export/${taskId}/status`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await fetch(`${API_BASE_URL}/api/v1/evidence/effectiveness/export/${taskId}/status`);
 
             const result = await response.json();
 
             if (result.data.status === 'completed') {
                 showMessage('报告生成完成', 'success');
-                // 自动下载
                 downloadEvaluationReport(taskId);
             } else if (result.data.status === 'failed') {
                 showMessage('报告生成失败', 'error');
             } else if (attempts < maxAttempts) {
                 attempts++;
-                setTimeout(checkStatus, 1000); // 1秒后再次检�?            } else {
+                setTimeout(checkStatus, 1000);
+            } else {
                 showMessage('报告生成超时，请稍后手动下载', 'warning');
             }
         } catch (error) {
@@ -381,11 +320,10 @@ async function pollExportStatus(taskId) {
  * @param {string} taskId - 任务ID
  */
 function downloadEvaluationReport(taskId) {
-    const token = getToken();
     const url = `${API_BASE_URL}/api/v1/evidence/effectiveness/export/${taskId}/download`;
 
-    // 创建隐藏的下载链�?    const link = document.createElement('a');
-    link.href = url + `?token=${token}`;
+    const link = document.createElement('a');
+    link.href = url;
     link.download = `evaluation_report_${taskId}.pdf`;
     document.body.appendChild(link);
     link.click();
@@ -403,88 +341,50 @@ function renderEvaluationResult(evaluation, containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    const { authenticity, legality, relevance, overall, risk_assessment, improvement_suggestions } = evaluation;
+    const { authenticity, relevance, legality, completeness, corroboration, overall, summary } = evaluation;
 
     container.innerHTML = `
         <div class="evaluation-result">
-            <!-- 综合评分卡片 -->
             <div class="overall-score-card">
                 <div class="score-circle">
                     <svg width="200" height="200">
                         <circle cx="100" cy="100" r="90" fill="none" stroke="#e5e7eb" stroke-width="12"/>
-                        <circle cx="100" cy="100" r="90" fill="none" stroke="${getScoreColor(overall.score)}" 
-                                stroke-width="12" stroke-dasharray="${overall.score * 565} 565" 
+                        <circle cx="100" cy="100" r="90" fill="none" stroke="${getScoreColor5(overall.score)}" 
+                                stroke-width="12" stroke-dasharray="${overall.score * 5.65} 565" 
                                 stroke-dashoffset="0" transform="rotate(-90 100 100)"/>
                     </svg>
                     <div class="score-text">
-                        <div class="score-value">${(overall.score * 100).toFixed(0)}</div>
+                        <div class="score-value">${overall.score.toFixed(0)}</div>
                         <div class="score-label">综合评分</div>
                     </div>
                 </div>
                 <div class="score-info">
-                    <div class="score-level ${overall.grade.toLowerCase()}">${overall.level}</div>
-                    <div class="score-grade">等级: ${overall.grade}</div>
+                    <div class="score-level">${overall.emoji} ${overall.grade}</div>
                     <div class="score-description">${overall.description}</div>
                 </div>
             </div>
 
-            <!-- 三维度评�?-->
             <div class="dimensions-grid">
-                ${renderDimensionCard('真实�?, authenticity, '<img src="../images/效力.svg" style="width: 20px; height: 20px; vertical-align: middle;">')}
-                ${renderDimensionCard('合法�?, legality, '<img src="../images/综合评估1.svg" style="width: 20px; height: 20px; vertical-align: middle;">')}
-                ${renderDimensionCard('关联�?, relevance, '<img src="../images/返回.svg" style="width: 20px; height: 20px; vertical-align: middle;">')}
+                ${renderDimensionCard5('来源真实性', authenticity, '📄')}
+                ${renderDimensionCard5('内容关联度', relevance, '🔗')}
+                ${renderDimensionCard5('合法合规性', legality, '⚖️')}
+                ${renderDimensionCard5('完整与清晰度', completeness, '📋')}
+                ${renderDimensionCard5('印证潜力', corroboration, '🔍')}
             </div>
 
-            <!-- 风险评估 -->
-            <div class="risk-assessment-section">
-                <h3><img src="../images/风险分析.svg" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"> 风险评估</h3>
-                <div class="risk-level ${risk_assessment.level.replace('风险', '')}">${risk_assessment.level}</div>
-                <div class="risks-list">
-                    ${risk_assessment.risks.map(risk => `
-                        <div class="risk-item">
-                            <div class="risk-header">
-                                <span class="risk-type">${risk.type}</span>
-                                <span class="risk-probability ${risk.probability}">${risk.probability}概率</span>
-                            </div>
-                            <div class="risk-description">${risk.description}</div>
-                            <div class="risk-mitigation">
-                                <strong>应对措施:</strong> ${risk.mitigation}
-                            </div>
-                        </div>
-                    `).join('')}
+            ${summary ? `
+                <div class="evaluation-summary">
+                    <h4>AI评估总结</h4>
+                    <p>${summary}</p>
                 </div>
-            </div>
+            ` : ''}
 
-            <!-- 改进建议 -->
-            <div class="improvement-section">
-                <h3><img src="../images/综合评估1.svg" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"> 改进建议</h3>
-                <div class="suggestions-list">
-                    ${improvement_suggestions.map(suggestion => `
-                        <div class="suggestion-item priority-${suggestion.priority}">
-                            <div class="suggestion-header">
-                                <span class="priority-badge">${suggestion.priority}优先�?/span>
-                                <span class="category">${suggestion.category}</span>
-                            </div>
-                            <div class="suggestion-content">${suggestion.suggestion}</div>
-                            <div class="suggestion-footer">
-                                <span class="improvement">预期提升: ${suggestion.expected_improvement}</span>
-                                <span class="cost">${suggestion.cost}</span>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-
-            <!-- 操作按钮 -->
             <div class="evaluation-actions">
-                <button class="btn-primary" onclick="exportEvaluationReport('${evaluation.evaluation_id}', 'pdf')">
-                    <img src="../images/文件-文书审查.svg" style="width: 16px; height: 16px; margin-right: 8px; vertical-align: middle;"> 导出PDF报告
+                <button class="btn-primary" onclick="exportEvaluationReport('${evaluation.evidence_id}', 'pdf')">
+                    📄 导出PDF报告
                 </button>
-                <button class="btn-secondary" onclick="exportEvaluationReport('${evaluation.evaluation_id}', 'word')">
-                    <img src="../images/文书生成.svg" style="width: 16px; height: 16px; margin-right: 8px; vertical-align: middle;"> 导出Word报告
-                </button>
-                <button class="btn-secondary" onclick="showEvaluationHistory('${evaluation.evidence_id}')">
-                    <img src="../images/日历.svg" style="width: 16px; height: 16px; margin-right: 8px; vertical-align: middle;"> 查看历史记录
+                <button class="btn-secondary" onclick="exportEvaluationReport('${evaluation.evidence_id}', 'word')">
+                    📝 导出Word报告
                 </button>
             </div>
         </div>
@@ -492,62 +392,39 @@ function renderEvaluationResult(evaluation, containerId) {
 }
 
 /**
- * 渲染维度评分卡片
+ * 渲染维度评分卡片（5维度版）
  */
-function renderDimensionCard(title, dimension, icon) {
+function renderDimensionCard5(title, dimension, icon) {
+    const reason = dimension.reason || '无';
+    const weight = dimension.weight ? `${(dimension.weight * 100).toFixed(0)}%` : '';
+
     return `
         <div class="dimension-card">
             <div class="dimension-header">
                 <span class="dimension-icon">${icon}</span>
                 <span class="dimension-title">${title}</span>
+                ${weight ? `<span class="dimension-weight">${weight}</span>` : ''}
             </div>
             <div class="dimension-score">
                 <div class="score-bar">
-                    <div class="score-fill" style="width: ${dimension.score * 100}%; background: ${getScoreColor(dimension.score)}"></div>
+                    <div class="score-fill" style="width: ${dimension.score * 10}%; background: ${getScoreColor5(dimension.score)}"></div>
                 </div>
-                <div class="score-value">${(dimension.score * 100).toFixed(0)}�?/div>
+                <div class="score-value">${dimension.score}/10</div>
             </div>
-            <div class="dimension-level">${dimension.level}</div>
-            
-            ${dimension.factors.length > 0 ? `
-                <div class="factors-section">
-                    <div class="section-title">�?优势因素</div>
-                    <ul class="factors-list">
-                        ${dimension.factors.map(factor => `<li>${factor}</li>`).join('')}
-                    </ul>
-                </div>
-            ` : ''}
-            
-            ${dimension.issues.length > 0 ? `
-                <div class="issues-section">
-                    <div class="section-title">⚠️ 存在问题</div>
-                    <ul class="issues-list">
-                        ${dimension.issues.map(issue => `<li>${issue}</li>`).join('')}
-                    </ul>
-                </div>
-            ` : ''}
-            
-            ${dimension.suggestions.length > 0 ? `
-                <div class="suggestions-section">
-                    <div class="section-title">💡 改进建议</div>
-                    <ul class="suggestions-list">
-                        ${dimension.suggestions.map(suggestion => `<li>${suggestion}</li>`).join('')}
-                    </ul>
-                </div>
-            ` : ''}
+            <div class="dimension-reason">${reason}</div>
         </div>
     `;
 }
 
 /**
- * 根据分数获取颜色
+ * 根据分数获取颜色（5维度版，0-10分制）
  */
-function getScoreColor(score) {
-    if (score >= 0.9) return '#10b981'; // 绿色
-    if (score >= 0.8) return '#3b82f6'; // 蓝色
-    if (score >= 0.7) return '#f59e0b'; // 橙色
-    if (score >= 0.6) return '#ef4444'; // 红色
-    return '#991b1b'; // 深红�?}
+function getScoreColor5(score) {
+    if (score >= 8.5) return '#10b981';
+    if (score >= 7.0) return '#3b82f6';
+    if (score >= 5.0) return '#f59e0b';
+    return '#ef4444';
+}
 
 /**
  * 显示评估历史记录
@@ -556,101 +433,31 @@ async function showEvaluationHistory(evidenceId) {
     const history = await getEvaluationHistory(evidenceId);
     if (!history) return;
 
-    // 创建模态框显示历史记录
     const modal = document.createElement('div');
     modal.className = 'modal show';
     modal.innerHTML = `
         <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header">
-                <h3><img src="../images/日历.svg" style="width: 20px; height: 20px; margin-right: 8px; vertical-align: middle;"> 评估历史记录</h3>
-                <button class="close-btn" onclick="this.closest('.modal').remove()">×</button>
+                <h3>评估历史记录</h3>
+                <button class="close-btn" onclick="this.closest('.modal').remove()">x</button>
             </div>
             <div class="modal-body">
-                <div class="history-stats">
-                    <div class="stat-item">
-                        <div class="stat-label">总评估次�?/div>
-                        <div class="stat-value">${history.total_evaluations}</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-label">趋势</div>
-                        <div class="stat-value ${history.trend}">${getTrendText(history.trend)}</div>
-                    </div>
-                </div>
-                <div class="history-list">
-                    ${history.history.map((item, index) => `
-                        <div class="history-item">
-                            <div class="history-index">#${index + 1}</div>
-                            <div class="history-info">
-                                <div class="history-time">${formatDateTime(item.timestamp)}</div>
-                                <div class="history-score">
-                                    <span class="score-badge" style="background: ${getScoreColor(item.overall_score)}">
-                                        ${(item.overall_score * 100).toFixed(0)}�?                                    </span>
-                                    <span class="score-level">${item.level}</span>
-                                </div>
-                            </div>
-                            <button class="btn-small" onclick="viewEvaluationDetail('${item.evaluation_id}')">
-                                查看详情
-                            </button>
-                        </div>
-                    `).join('')}
-                </div>
+                <p>历史记录功能开发中...</p>
             </div>
         </div>
     `;
     document.body.appendChild(modal);
 }
 
-/**
- * 查看评估详情
- */
-async function viewEvaluationDetail(evaluationId) {
-    const detail = await getEvaluationDetail(evaluationId);
-    if (!detail) return;
-
-    // 关闭历史记录模态框
-    const historyModal = document.querySelector('.modal');
-    if (historyModal) historyModal.remove();
-
-    // 显示评估详情
-    renderEvaluationResult(detail.result, 'evaluationResultContainer');
-}
-
-/**
- * 获取趋势文本
- */
-function getTrendText(trend) {
-    const trendMap = {
-        'improving': '<img src="../images/综合评估1.svg" style="width: 16px; height: 16px; margin-right: 8px; vertical-align: middle;"> 持续改善',
-        'stable': '<img src="../images/返回.svg" style="width: 16px; height: 16px; margin-right: 8px; vertical-align: middle;"> 保持稳定',
-        'declining': '<img src="../images/风险分析.svg" style="width: 16px; height: 16px; margin-right: 8px; vertical-align: middle;"> 有所下降'
-    };
-    return trendMap[trend] || trend;
-}
-
-/**
- * 格式化日期时�? */
-function formatDateTime(dateTimeString) {
-    const date = new Date(dateTimeString);
-    return date.toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-}
-
-// ==================== 页面初始�?====================
-
-// 页面加载完成后初始化
-document.addEventListener('DOMContentLoaded', function () {
-    console.log('[证据效力分析] 页面初始�?);
-
-    // 检查登录状�?    const token = getToken();
-    if (!token) {
-        showMessage('请先登录', 'warning');
-        setTimeout(() => {
-            window.location.href = '/index.html';
-        }, 2000);
-    }
-});
+// 暴露函数到全局作用域，供HTML中的onclick使用
+window.getEvaluationDetail = getEvaluationDetail;
+window.getEvaluationHistory = getEvaluationHistory;
+window.showEvaluationHistory = showEvaluationHistory;
+window.evaluateEvidence = evaluateEvidence;
+window.batchEvaluateEvidence = batchEvaluateEvidence;
+window.exportEvaluationReport = exportEvaluationReport;
+window.getToken = getToken;
+window.handle401Error = handle401Error;
+window.showMessage = showMessage;
+window.showLoading = showLoading;
+window.hideLoading = hideLoading;
