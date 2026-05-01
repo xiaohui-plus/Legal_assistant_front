@@ -4006,8 +4006,10 @@
                             <input type="text" class="welcome-input" id="welcomeInput" placeholder="发消息提问，法智AI将为您提供专业法律建议..." onkeydown="handleWelcomeInputKeyDown(event)">
                             <!-- AI模型选择器 -->
                             <select id="welcomeAiModelSelect" class="model-select-inline-welcome" onchange="changeAIModel(this.value)" title="选择AI模型">
-                                <option value="tencent">腾讯元器智能体</option>
+                                <option value="glm">智谱GLM</option>
                                 <option value="qwen">通义千问</option>
+                                <option value="deepseek">DeepSeek</option>
+                                <option value="tencent">腾讯元器</option>
                             </select>
                             <button class="welcome-send-btn" onclick="sendWelcomeMessage()">
                                 <span>发送</span>
@@ -4104,8 +4106,10 @@
                                 <div class="toolbar-left">
                                     <!-- AI模型选择器 -->
                                     <select id="aiModelSelect" class="model-select-inline" onchange="changeAIModel(this.value)" title="选择AI模型">
-                                        <option value="tencent">腾讯元器智能体</option>
+                                        <option value="glm">智谱GLM</option>
                                         <option value="qwen">通义千问</option>
+                                        <option value="deepseek">DeepSeek</option>
+                                        <option value="tencent">腾讯元器</option>
                                     </select>
                                 </div>
                                 <div class="toolbar-right">
@@ -5898,6 +5902,8 @@
 
                 showTypingIndicator();
 
+                let renderTimer = null;
+
                 try {
                     const token = localStorage.getItem('token');
                     const headers = {
@@ -5910,6 +5916,19 @@
 
                     const selectedModel = document.getElementById('aiModelSelect')?.value || document.getElementById('welcomeAiModelSelect')?.value || 'qwen';
                     
+                    // 提取最近5轮对话历史（不含当前消息）
+                    const chatHistory = [];
+                    const allMessages = chat.messages.filter(m => m.type === 'user' || m.type === 'ai');
+                    const maxHistoryRounds = 5;
+                    const historyStart = Math.max(0, allMessages.length - maxHistoryRounds * 2);
+                    for (let i = historyStart; i < allMessages.length; i++) {
+                        const msg = allMessages[i];
+                        chatHistory.push({
+                            role: msg.type === 'user' ? 'user' : 'assistant',
+                            content: msg.content
+                        });
+                    }
+                    
                     const response = await fetch(`${API_BASE}/api/qa/ask-stream`, {
                         method: 'POST',
                         headers: headers,
@@ -5918,7 +5937,8 @@
                             session_id: currentChatId,
                             top_k: 3,
                             include_similar_cases: true,
-                            model: selectedModel
+                            model: selectedModel,
+                            history: chatHistory.length > 0 ? chatHistory : undefined
                         })
                     });
 
@@ -5953,7 +5973,6 @@
                     // 平滑队列：ChatGPT 的秘密武器
                     const charQueue = [];
                     let isRendering = false;
-                    let renderTimer = null;
                     let streamDone = false;
 
                     // 获取消息气泡元素
@@ -6074,14 +6093,23 @@
 
                         buffer += decoder.decode(value, { stream: true });
 
-                        const lines = buffer.split('\n');
-                        buffer = lines.pop() || '';
+                        // 按 SSE 事件分隔符分割，避免破坏 UTF-8 多字节字符
+                        const events = buffer.split('\n\n');
+                        buffer = events.pop() || '';
 
-                        for (const line of lines) {
-                            const trimmedLine = line.trim();
-                            if (!trimmedLine || !trimmedLine.startsWith('data: ')) continue;
+                        for (const event of events) {
+                            if (!event.trim()) continue;
 
-                            const dataStr = trimmedLine.replace('data: ', '');
+                            const lines = event.split('\n');
+                            let dataStr = '';
+                            for (const line of lines) {
+                                const trimmedLine = line.trim();
+                                if (trimmedLine.startsWith('data: ')) {
+                                    dataStr = trimmedLine.slice(6);
+                                    break;
+                                }
+                            }
+                            if (!dataStr || dataStr === '[DONE]') continue;
                             
                             try {
                                 const data = JSON.parse(dataStr);
@@ -6257,7 +6285,13 @@
 
             // 切换AI模型
             changeAIModel = function(model) {
-                const modelName = model === 'qwen' ? '通义千问' : '腾讯元器';
+                const modelNameMap = {
+                    'glm': '智谱GLM',
+                    'qwen': '通义千问',
+                    'deepseek': 'DeepSeek',
+                    'tencent': '腾讯元器'
+                };
+                const modelName = modelNameMap[model] || model;
                 console.log(`[changeAIModel] 已切换到: ${modelName}`);
                 // 保存用户选择到localStorage
                 localStorage.setItem('preferredAIModel', model);

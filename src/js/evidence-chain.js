@@ -142,18 +142,32 @@ function displayEvidenceList(data) {
         return;
     }
 
-    container.innerHTML = evidenceList.map(item => `
+    container.innerHTML = evidenceList.map(item => {
+        // 将 ocr_status 转换为中文显示
+        const ocrStatusMap = {
+            'analyzed': '已识别',
+            'failed': '识别失败',
+            'pending': '待识别',
+            'uploaded': '待识别',
+            'analyzing': '识别中'
+        };
+        const statusText = ocrStatusMap[item.ocr_status] || '待识别';
+        const statusClass = item.ocr_status === 'analyzed' ? 'status-success' : 
+                           item.ocr_status === 'failed' ? 'status-error' : 
+                           item.ocr_status === 'analyzing' ? 'status-loading' : 'status-pending';
+        
+        return `
         <div class="evidence-item" data-id="${item.id || ''}">
             <div class="evidence-info">
                 <div class="evidence-name">${item.file_name || item.name || '未命名证据'}</div>
-                <div class="evidence-status">${item.status || '待识别'}</div>
+                <div class="evidence-status ${statusClass}">${statusText}</div>
             </div>
             <div class="evidence-actions">
                 <button onclick="viewEvidence('${item.id}')">查看</button>
                 <button onclick="deleteEvidence('${item.id}')">删除</button>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 function updateStats(data) {
