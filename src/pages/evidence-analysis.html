@@ -6550,13 +6550,16 @@
             }
         }
 
-        // 渲染雷达图
+        // 渲染雷达图（使用 ECharts）
         function renderRadarChart(apiData) {
-            const chartCanvas = document.getElementById('radarChart');
+            const chartContainer = document.getElementById('radarChart');
             
-            if (window.riskChart) {
-                window.riskChart.destroy();
-            }
+            // 清空容器并创建新的 div
+            chartContainer.innerHTML = '';
+            const chartDiv = document.createElement('div');
+            chartDiv.style.width = '100%';
+            chartDiv.style.height = '400px';
+            chartContainer.appendChild(chartDiv);
 
             const radarScores = apiData.radar_chart || {};
             const dimensions = [
@@ -6567,53 +6570,82 @@
                 { key: 'procedural_compliance', name: '程序合规性' }
             ];
 
-            const labels = dimensions.map(d => d.name);
-            const data = dimensions.map(d => (radarScores[d.key] || 0) * 10); // 转换为0-100分制
+            const indicators = dimensions.map(d => ({
+                name: d.name,
+                max: 100
+            }));
 
-            const chartData = {
-                labels: labels,
-                datasets: [{
-                    label: '当前案件评估',
-                    data: data,
-                    backgroundColor: 'rgba(30, 64, 175, 0.2)',
-                    borderColor: 'rgba(30, 64, 175, 1)',
-                    borderWidth: 2,
-                    pointBackgroundColor: '#1e40af',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: '#1e40af'
+            const values = dimensions.map(d => ({
+                name: d.name,
+                value: (radarScores[d.key] || 0) * 10 // 转换为0-100分制
+            }));
+
+            // 销毁旧图表
+            if (window.riskChart) {
+                window.riskChart.dispose();
+            }
+
+            // 使用 ECharts 渲染雷达图
+            window.riskChart = echarts.init(chartDiv);
+            const option = {
+                tooltip: {
+                    trigger: 'item'
+                },
+                legend: {
+                    data: ['当前案件评估'],
+                    bottom: 10
+                },
+                radar: {
+                    indicator: indicators,
+                    shape: 'polygon',
+                    splitNumber: 5,
+                    axisName: {
+                        color: '#333',
+                        fontSize: 12
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: '#e5e7eb'
+                        }
+                    },
+                    splitArea: {
+                        show: true,
+                        areaStyle: {
+                            color: ['#f8fafc', '#f1f5f9', '#e2e8f0', '#cbd5e1', '#94a3b8']
+                        }
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: '#94a3b8'
+                        }
+                    }
+                },
+                series: [{
+                    name: '当前案件评估',
+                    type: 'radar',
+                    data: [{
+                        value: values.map(v => v.value),
+                        name: '当前案件评估',
+                        areaStyle: {
+                            color: 'rgba(30, 64, 175, 0.2)'
+                        },
+                        lineStyle: {
+                            color: '#1e40af',
+                            width: 2
+                        },
+                        itemStyle: {
+                            color: '#1e40af'
+                        }
+                    }]
                 }]
             };
 
-            window.riskChart = new Chart(chartCanvas, {
-                type: 'radar',
-                data: chartData,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            min: 0,
-                            max: 100,
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 20
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom'
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.label}: ${context.raw.toFixed(1)}分`;
-                                }
-                            }
-                        }
-                    }
+            window.riskChart.setOption(option);
+
+            // 响应式调整
+            window.addEventListener('resize', () => {
+                if (window.riskChart) {
+                    window.riskChart.resize();
                 }
             });
         }
