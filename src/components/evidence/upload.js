@@ -69,13 +69,13 @@ class EvidenceUploader {
 
   async uploadFiles(files) {
     if (!files || files.length === 0) {
-      console.warn('⚠️ 没有文件需要上�?);
+      console.warn('没有文件需要上传');
       return;
     }
 
     // 限制文件数量
     if (files.length > 20) {
-      alert('单次最多上�?0个文�?);
+      alert('单次最多上传20个文件');
       return;
     }
 
@@ -144,6 +144,16 @@ class EvidenceUploader {
         if (this.onUploadComplete) {
           this.onUploadComplete(result);
         }
+        
+        // 触发证据上传完成事件，让页面重新分析
+        const uploadEvent = new CustomEvent('evidenceUploadComplete', { 
+          detail: { 
+            caseId: this.currentCaseId,
+            result: result.data
+          } 
+        });
+        window.dispatchEvent(uploadEvent);
+        console.log('📤 已触发 evidenceUploadComplete 事件');
       } else {
         throw new Error(result.message || '上传失败');
       }
@@ -199,6 +209,60 @@ class EvidenceUploader {
     // 刷新证据列表以更新状态
     if (this.onUploadComplete) {
       this.onUploadComplete({ action: 'analyze_complete' });
+    }
+    
+    // 自动触发申诉概率分析和雷达图更新
+    await this.triggerAppealProbabilityAnalysis();
+  }
+  
+  // 自动触发申诉概率分析并更新雷达图
+  async triggerAppealProbabilityAnalysis() {
+    try {
+      console.log('🔄 证据分析完成，自动触发申诉概率分析...');
+      
+      const caseId = this.currentCaseId;
+      if (!caseId) {
+        console.warn('⚠️ 当前没有案件ID，跳过申诉概率分析');
+        return;
+      }
+      
+      // 显示分析进度提示
+      this.showUploadStatus('正在分析证据效力，更新雷达图...', 100);
+      
+      // 清除缓存，确保获取最新数据
+      const cacheKey = `appeal_probability_${caseId}`;
+      localStorage.removeItem(cacheKey);
+      
+      // 调用申诉概率分析API
+      const response = await fetch(`${window.API_BASE_URL}/api/v1/evidence/appeal-probability/analyze/${caseId}?case_type=civil`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          ...evidenceApi.getAuthHeaders?.() || {}
+        }
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        if (result.code === 200) {
+          console.log('✅ 申诉概率分析完成');
+          
+          // 触发全局事件，通知页面更新雷达图
+          const event = new CustomEvent('appealProbabilityUpdated', { 
+            detail: { data: result.data, caseId } 
+          });
+          window.dispatchEvent(event);
+          
+          // 显示成功提示
+          this.showUploadStatus('证据效力分析完成，雷达图已更新！', 100);
+        } else {
+          console.error('申诉概率分析失败:', result.message);
+        }
+      } else {
+        console.error('申诉概率分析请求失败:', response.status);
+      }
+    } catch (error) {
+      console.error('触发申诉概率分析失败:', error);
     }
   }
 

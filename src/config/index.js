@@ -11,8 +11,8 @@ var API_CONFIG = {
   // 本地开发地址（开发时使用）
   // BASE_URL: 'http://localhost:8001',
   
-  // 生产环境：使用相对路径，由 Nginx 代理（后端 8001）
-  BASE_URL: 'http://154.89.153.127:8001',
+  // 生产环境：使用后端服务器的绝对地址
+  BASE_URL: 'https://api.xiaodeng.top',
   
   // GitHub Pages 部署地址（取消注释并替换为你的服务器地址）
   // BASE_URL: 'https://api.xiaodeng.top',
@@ -24,11 +24,8 @@ var API_CONFIG = {
 if (typeof window !== 'undefined') {
   window.API_CONFIG = API_CONFIG;
   
-  // 检测是否运行在 GitHub Pages 上
-  var isGithubPages = window.location.hostname && window.location.hostname.indexOf('github.io') !== -1;
-  
-  // GitHub Pages 使用绝对地址，其他环境使用配置的值
-  window.API_BASE_URL = isGithubPages ? 'https://api.xiaodeng.top' : API_CONFIG.BASE_URL;
+  // 统一使用配置的 BASE_URL（已设置为 https://api.xiaodeng.top）
+  window.API_BASE_URL = API_CONFIG.BASE_URL;
   window.API_TIMEOUT = API_CONFIG.TIMEOUT;
 }
 

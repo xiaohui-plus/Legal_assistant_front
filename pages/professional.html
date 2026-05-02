@@ -13,8 +13,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- 必须在其他脚本之前加载配置文件，确保 window.API_BASE_URL 已定义 -->
-    <!-- 添加版本号强制浏览器重新加载配置文件 -->
-    <script src="../config/index.js?v=20260501"></script>
+    <script src="../config/index.js"></script>
 
     <!-- Marked Markdown 解析库 -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -1511,7 +1510,7 @@
         .message-bubble {
             padding: 12px 16px;
             border-radius: 16px;
-            font-size: 16px;
+            font-size: 14px;
             line-height: 1.4;
             word-wrap: break-word;
             position: relative;
@@ -1523,7 +1522,7 @@
             color: #1e293b;
             text-align: left;
             padding: 12px 0;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         .message-group.ai {
@@ -5971,26 +5970,10 @@
                         addMessageToContainer(aiMessage);
                     }
 
-                    // 平滑队列：优化版（带容量上限 + 速率自适应）
-                    const MAX_QUEUE_SIZE = 5000; // 队列上限，防止内存堆积
+                    // 平滑队列：ChatGPT 的秘密武器
                     const charQueue = [];
                     let isRendering = false;
                     let streamDone = false;
-
-                    // 速率自适应：根据当前已渲染内容长度动态调整速度
-                    // 短回答（<200字）→ 快速输出 ~80字/秒
-                    // 中回答（200-1000字）→ 正常 ~40字/秒
-                    // 长回答（>1000字）→ 舒适 ~30字/秒
-                    function getRenderConfig() {
-                        const len = fullAnswer.length;
-                        if (len < 200) {
-                            return { chunkSize: 6, interval: 25 };
-                        } else if (len < 1000) {
-                            return { chunkSize: 3, interval: 25 };
-                        } else {
-                            return { chunkSize: 2, interval: 33 };
-                        }
-                    }
 
                     // 获取消息气泡元素
                     function getMessageBubble() {
@@ -6053,7 +6036,7 @@
                         }, 50);
                     }
 
-                    // 定时器：动态速率消费队列（速率自适应）
+                    // 定时器：固定频率消费队列（约 40字/秒）
                     let hasStartedRendering = false;
                     renderTimer = setInterval(() => {
                         if (charQueue.length > 0) {
@@ -6063,9 +6046,7 @@
                                 hasStartedRendering = true;
                             }
                             
-                            // 根据当前回答长度动态调整每次取字符数和刷新频率
-                            const config = getRenderConfig();
-                            const chunk = charQueue.splice(0, config.chunkSize).join('');
+                            const chunk = charQueue.splice(0, 3).join(''); // 每次取3个字符，更流畅
                             
                             // 关键：同时更新 fullAnswer 和显示
                             fullAnswer += chunk;
@@ -6103,7 +6084,7 @@
 
                             saveChats();
                         }
-                    }, 25); // 25ms 基础刷新间隔（短回答使用）
+                    }, 25); // 25ms 刷新一次
 
                     // 读取流数据，塞入队列
                     while (true) {
@@ -6134,12 +6115,10 @@
                                 const data = JSON.parse(dataStr);
 
                                 if (data.type === 'chunk') {
-                                    // 关键：将收到的字符推入队列（带容量上限，防止内存堆积）
+                                    // 关键：将收到的字符推入队列，而不是直接渲染
                                     if (data.content) {
                                         for (const char of data.content) {
-                                            if (charQueue.length < MAX_QUEUE_SIZE) {
-                                                charQueue.push(char);
-                                            }
+                                            charQueue.push(char);
                                         }
                                     }
 
